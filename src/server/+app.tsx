@@ -17,9 +17,10 @@ const app = new Elysia().onRequest(async (ctx) => {
   const router = getRouter();
 
   const matchRoute =
-    (pathname.startsWith(FRAGMENT_ROUTE)
-      ? router.match(pathname.replace(FRAGMENT_ROUTE, ""))
-      : router.match(pathname)
+    router.match(
+      pathname.startsWith(FRAGMENT_ROUTE)
+        ? pathname.replace(FRAGMENT_ROUTE, "")
+        : pathname,
     )?.filePath || null;
 
   if (!matchRoute) {
