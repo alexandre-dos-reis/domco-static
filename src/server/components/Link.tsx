@@ -1,12 +1,8 @@
-import { FRAGMENT_PREFIX } from "@/server/contants";
 interface Props extends JSX.HtmlAnchorTag {
   hxHeaders?: Record<string, string>;
 }
 
-/* <a href="/_fragment/about" target="#main"> */
-
 export const Link = ({
-  href,
   children,
   hxHeaders,
   class: className,
@@ -15,8 +11,12 @@ export const Link = ({
   return (
     <a
       {...p}
-      href={`${FRAGMENT_PREFIX}${href}`} // The real url fetched
-      target="#main"
+      hx-push-url={p.href} // Push new url in the history and in the url browser
+      hx-get={p.href} // The real url fetched
+      hx-select="#main"
+      hx-target="#main"
+      hx-swap="outerHTML"
+      preload="mouseover"
     >
       {children}
     </a>

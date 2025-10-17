@@ -7,7 +7,7 @@
     "dev": "bun --bun run vite",
     "check": "tsc",
     "build": "bun --bun run vite build",
-    "preview": "bun --bun run vite preview"
+    "start": "bun --bun run server.ts"
   },
   "dependencies": {
     "@kitajs/html": "^4.2.10",

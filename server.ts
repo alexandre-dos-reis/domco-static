@@ -1,9 +1,9 @@
-import app from "./dist/server/app.js";
-import { nodeListener } from "domco/listener";
+import { FRAGMENT_PREFIX } from "./src/server/contants.js";
 import { createServer } from "node:http";
+import { join } from "node:path";
 import sirv from "sirv";
 
-const assets = sirv("dist/client", {
+const serveAssets = sirv("dist/client", {
   dev: false,
   gzip: true,
   brotli: true,
@@ -17,10 +17,9 @@ const assets = sirv("dist/client", {
 
 console.log(`Server listening on http://localhost:3000`);
 
-createServer((req, res) =>
-  // first, look for a static asset
-  assets(req, res, () =>
-    // fallthrough to the fetch handler if static asset is not found
-    nodeListener(app.fetch)(req, res),
-  ),
-).listen(3000);
+createServer((req, res) => {
+  if (req.headers["hx-request"]) {
+    req.url = join(FRAGMENT_PREFIX, String(req.url));
+  }
+  return serveAssets(req, res);
+}).listen(3000);

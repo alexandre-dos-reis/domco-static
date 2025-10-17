@@ -9,11 +9,10 @@ export const Layout = ({ children }: PropsWithChildren) => (
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {/* <meta name="htmx-config" content='{"getCacheBusterParam":true}' /> */}
         <title>TS + Bun + Elysia + Vite + React</title>
         {tags}
       </head>
-      <body>
+      <body hx-ext="preload">
         <nav>
           <ul>
             <li>
@@ -22,10 +21,12 @@ export const Layout = ({ children }: PropsWithChildren) => (
             <li>
               <Link href="/about">About</Link>
             </li>
+            <li>
+              <Link href="/blog">Blog</Link>
+            </li>
           </ul>
         </nav>
         {children}
-        <iframe hidden name="#main" onload="window.htmz?.(this)"></iframe>
       </body>
     </html>
   </>
