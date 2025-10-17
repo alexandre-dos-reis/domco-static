@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import sirv from "sirv";
 
 const assets = sirv("dist/client", {
+  dev: false,
   gzip: true,
   brotli: true,
   etag: true,
@@ -13,14 +14,13 @@ const assets = sirv("dist/client", {
     }
   },
 });
-const server = createServer((req, res) =>
+
+console.log(`Server listening on http://localhost:3000`);
+
+createServer((req, res) =>
   // first, look for a static asset
   assets(req, res, () =>
     // fallthrough to the fetch handler if static asset is not found
     nodeListener(app.fetch)(req, res),
   ),
-);
-
-console.log(`Server listening on http://localhost:3000`);
-
-server.listen(3000);
+).listen(3000);

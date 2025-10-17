@@ -1,7 +1,7 @@
 import { contentToString } from "@kitajs/html";
 import { Elysia } from "elysia";
 import { Layout } from "./Layout";
-import { FRAGMENT_ROUTE } from "./contants";
+import { FRAGMENT_PREFIX } from "./contants";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -16,12 +16,11 @@ const app = new Elysia().onRequest(async (ctx) => {
 
   const router = getRouter();
 
+  const secFetchDest = ctx.request.headers.get("Sec-Fetch-Dest");
+
   const matchRoute =
-    router.match(
-      pathname.startsWith(FRAGMENT_ROUTE)
-        ? pathname.replace(FRAGMENT_ROUTE, "")
-        : pathname,
-    )?.filePath || null;
+    router.match(pathname.replace(new RegExp(`^${FRAGMENT_PREFIX}`), ""))
+      ?.filePath || null;
 
   if (!matchRoute) {
     return new Response("404", {
@@ -32,14 +31,14 @@ const app = new Elysia().onRequest(async (ctx) => {
 
   const Page = (await import(matchRoute)).default;
 
-  const html = contentToString(
-    pathname.startsWith(FRAGMENT_ROUTE) ? (
+  const Wrapper = (
+    <main id="main">
       <Page />
-    ) : (
-      <Layout>
-        <Page />
-      </Layout>
-    ),
+    </main>
+  );
+
+  const html = contentToString(
+    secFetchDest === "document" ? <Layout>{Wrapper}</Layout> : Wrapper,
   ) as string;
 
   return new Response(html, {
@@ -51,6 +50,6 @@ export default {
   fetch: app.fetch,
   prerender: () => {
     const routes = Object.keys(getRouter().routes);
-    return [...routes, ...routes.map((r) => `${FRAGMENT_ROUTE}${r}`)];
+    return [...routes, ...routes.map((r) => `${FRAGMENT_PREFIX}${r}`)];
   },
 };

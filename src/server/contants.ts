@@ -1,1 +1,1 @@
-export const FRAGMENT_ROUTE = "/_fragments";
+export const FRAGMENT_PREFIX = "/_fragments";
