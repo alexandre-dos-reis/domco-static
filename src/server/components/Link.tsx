@@ -1,3 +1,5 @@
+import { MAIN_ROUTER_ELEMENT_ID } from "../contants";
+
 interface Props extends JSX.HtmlAnchorTag {
   hxHeaders?: Record<string, string>;
 }
@@ -9,7 +11,7 @@ export const Link = ({
   ...p
 }: Props) => {
   return (
-    <a {...p} target="#main">
+    <a {...p} target={`#${MAIN_ROUTER_ELEMENT_ID}`}>
       {children}
     </a>
   );

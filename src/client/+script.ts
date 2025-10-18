@@ -6,6 +6,12 @@ const getState = (element: HTMLElement) => {
     : null;
 };
 
+declare global {
+  interface Window {
+    htmz: (iframe: HTMLIFrameElement) => void;
+  }
+}
+
 window.htmz = (iframe: HTMLIFrameElement) => {
   const mainElement = iframe.contentDocument?.body.firstChild as HTMLElement;
   const state = getState(mainElement);

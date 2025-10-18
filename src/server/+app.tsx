@@ -1,9 +1,9 @@
 import { contentToString } from "@kitajs/html";
 import { Elysia } from "elysia";
 import { Layout } from "./Layout";
-import { FRAGMENT_PREFIX } from "./contants";
+import { FRAGMENT_PREFIX, MAIN_ROUTER_ELEMENT_ID } from "./contants";
 import { join } from "node:path";
-import type { HtmzDataState } from "@/shared-types";
+import type { DataState } from "@/shared-types";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -35,13 +35,13 @@ const app = new Elysia().onRequest(async (ctx) => {
 
   const Page = (pages[`/server/pages/${matchRoute.src}`] as any).default();
 
-  const state: HtmzDataState = {
+  const state: DataState = {
     action: "navigate",
     path: matchRoute.pathname,
   };
 
   const Wrapper = (
-    <main id="main" data-state={JSON.stringify(state)}>
+    <main id={MAIN_ROUTER_ELEMENT_ID} data-state={JSON.stringify(state)}>
       {Page}
     </main>
   );

@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from "@kitajs/html";
 import { Link } from "@/server/components/Link";
 import { tags } from "client:script";
+import { MAIN_ROUTER_ELEMENT_ID } from "./contants";
 
 export const Layout = ({
   children,
@@ -33,7 +34,7 @@ export const Layout = ({
         {children}
         <iframe
           hidden
-          name="#main"
+          name={`#${MAIN_ROUTER_ELEMENT_ID}`}
           src={initialPath}
           onload="window.htmz?.(this)"
         ></iframe>
