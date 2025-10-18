@@ -41,7 +41,7 @@ const app = new Elysia().onRequest(async (ctx) => {
   };
 
   const Wrapper = (
-    <main id="main" data-state={JSON.stringify(state)} hx-history-elt>
+    <main id="main" data-state={JSON.stringify(state)}>
       {Page}
     </main>
   );
@@ -51,7 +51,7 @@ const app = new Elysia().onRequest(async (ctx) => {
       pathname.startsWith(FRAGMENT_PREFIX) ? (
       Wrapper
     ) : (
-      <Layout>{Wrapper}</Layout>
+      <Layout initialPath={state.path}>{Wrapper}</Layout>
     ),
   ) as string;
 

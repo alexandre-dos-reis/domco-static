@@ -2,7 +2,10 @@ import type { PropsWithChildren } from "@kitajs/html";
 import { Link } from "@/server/components/Link";
 import { tags } from "client:script";
 
-export const Layout = ({ children }: PropsWithChildren) => (
+export const Layout = ({
+  children,
+  initialPath,
+}: PropsWithChildren<{ initialPath?: string }>) => (
   <>
     {`<!doctype html>`}
     <html lang="en">
@@ -12,7 +15,8 @@ export const Layout = ({ children }: PropsWithChildren) => (
         <title>TS + Bun + Elysia + Vite + React</title>
         {tags}
       </head>
-      <body hx-ext="preload">
+      {/* <body hx-ext="preload"> */}
+      <body>
         <nav>
           <ul>
             <li>
@@ -27,7 +31,12 @@ export const Layout = ({ children }: PropsWithChildren) => (
           </ul>
         </nav>
         {children}
-        <iframe hidden name="#main" onload="window.htmz?.(this)"></iframe>
+        <iframe
+          hidden
+          name="#main"
+          src={initialPath}
+          onload="window.htmz?.(this)"
+        ></iframe>
       </body>
     </html>
   </>
