@@ -27,6 +27,7 @@ export const Layout = ({ children }: PropsWithChildren) => (
           </ul>
         </nav>
         {children}
+        <iframe hidden name="#main" onload="window.htmz?.(this)"></iframe>
       </body>
     </html>
   </>

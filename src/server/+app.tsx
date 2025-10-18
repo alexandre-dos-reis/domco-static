@@ -3,6 +3,7 @@ import { Elysia } from "elysia";
 import { Layout } from "./Layout";
 import { FRAGMENT_PREFIX } from "./contants";
 import { join } from "node:path";
+import type { HtmzDataState } from "@/shared-types";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -34,14 +35,19 @@ const app = new Elysia().onRequest(async (ctx) => {
 
   const Page = (pages[`/server/pages/${matchRoute.src}`] as any).default();
 
+  const state: HtmzDataState = {
+    action: "navigate",
+    path: matchRoute.pathname,
+  };
+
   const Wrapper = (
-    <main id="main" hx-history-elt>
+    <main id="main" data-state={JSON.stringify(state)} hx-history-elt>
       {Page}
     </main>
   );
 
   const html = contentToString(
-    ctx.request.headers.get("Hx-Request") ||
+    ctx.request.headers.get("Sec-Fetch-Dest") === "iframe" ||
       pathname.startsWith(FRAGMENT_PREFIX) ? (
       Wrapper
     ) : (
