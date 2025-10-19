@@ -17,13 +17,16 @@ export const Layout = ({ children }: PropsWithChildren) => (
         <nav>
           <ul>
             <li>
-              <Link href="/">Home</Link>
-            </li>
-            <li>
-              <Link href="/about">About</Link>
+              <Link href="/">Accueil</Link>
             </li>
             <li>
               <Link href="/blog">Blog</Link>
+            </li>
+            <li>
+              <Link href="/parcours">Parcours</Link>
+            </li>
+            <li>
+              <a href="mailto:ajm.dosreis.daponte@gmail.com">Contact</a>
             </li>
           </ul>
         </nav>
