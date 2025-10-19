@@ -3,10 +3,7 @@ import { Link } from "@/server/components/Link";
 import { tags } from "client:script";
 import { MAIN_ROUTER_ELEMENT_ID } from "./contants";
 
-export const Layout = ({
-  children,
-  initialPath,
-}: PropsWithChildren<{ initialPath?: string }>) => (
+export const Layout = ({ children }: PropsWithChildren) => (
   <>
     {`<!doctype html>`}
     <html lang="en">
@@ -16,7 +13,6 @@ export const Layout = ({
         <title>TS + Bun + Elysia + Vite + React</title>
         {tags}
       </head>
-      {/* <body hx-ext="preload"> */}
       <body>
         <nav>
           <ul>
@@ -35,7 +31,6 @@ export const Layout = ({
         <iframe
           hidden
           name={`#${MAIN_ROUTER_ELEMENT_ID}`}
-          src={initialPath}
           onload="window.htmz?.(this)"
         ></iframe>
       </body>
