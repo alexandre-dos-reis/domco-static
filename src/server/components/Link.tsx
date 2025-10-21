@@ -1,15 +1,4 @@
-import { MAIN_ROUTER_ELEMENT_ID } from "../contants";
-
-interface Props extends JSX.HtmlAnchorTag {
-  hxHeaders?: Record<string, string>;
-}
-
-export const Link = ({
-  children,
-  hxHeaders,
-  class: className,
-  ...p
-}: Props) => {
+export const Link = ({ ...p }: JSX.HtmlAnchorTag) => {
   return (
     <a
       {...p}
@@ -19,8 +8,6 @@ export const Link = ({
       fx-target="#main"
       fx-swap="innerHTML"
       fx-push-url
-    >
-      {children}
-    </a>
+    />
   );
 };

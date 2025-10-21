@@ -1,7 +1,3 @@
-import { type Options } from "@mdx-js/rollup";
-import rehypeStarryNight from "rehype-starry-night";
-import { all } from "@wooorm/starry-night";
+import type { Options } from "@mdx-js/rollup";
 
-export default [
-  [rehypeStarryNight, { grammars: all }],
-] as Options["remarkPlugins"];
+export default [] as Options["remarkPlugins"];

@@ -1,8 +1,11 @@
 import { contentToString } from "@kitajs/html";
 import { Elysia } from "elysia";
 import { Layout } from "./Layout";
-import { FRAGMENT_PREFIX, MAIN_ROUTER_ELEMENT_ID } from "./contants";
+import { FRAGMENT_PREFIX } from "./contants";
 import { join } from "node:path";
+import { ActionPill } from "./components/ActionPill";
+import { Command } from "./components/Command";
+import { Frame } from "./components/Frame";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -32,7 +35,22 @@ const app = new Elysia().onRequest(async (ctx) => {
     eager: true,
   });
 
-  const Page = (pages[`/server/pages/${matchRoute.src}`] as any).default();
+  const isMDX = matchRoute.src.endsWith(".mdx");
+
+  const PageComponent = (pages[`/server/pages/${matchRoute.src}`] as any)
+    .default;
+
+  const Page = isMDX ? (
+    <PageComponent
+      components={{
+        AP: ActionPill,
+        C: Command,
+        Frame: Frame,
+      }}
+    />
+  ) : (
+    <PageComponent />
+  );
 
   const html = contentToString(
     ctx.request.headers.get("Fx-Request") ||
