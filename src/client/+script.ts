@@ -1,15 +1,4 @@
-declare global {
-  interface Window {
-    htmz: (iframe: HTMLIFrameElement) => void;
-  }
-}
+import "./fixi-0.9.2";
+import "./fixi-ext";
 
-window.htmz = (iframe: HTMLIFrameElement) => {
-  history.replaceState(null, "", iframe.contentWindow?.location.pathname);
-
-  document
-    .querySelector(iframe.name)
-    ?.replaceWith(
-      (iframe.contentDocument?.body.firstChild as HTMLElement) || [],
-    );
-};
+import "@wooorm/starry-night/style/both";

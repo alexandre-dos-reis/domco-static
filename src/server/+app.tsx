@@ -7,7 +7,7 @@ import { join } from "node:path";
 const getRouter = () => {
   return new Bun.FileSystemRouter({
     style: "nextjs",
-    fileExtensions: [".tsx"],
+    fileExtensions: [".tsx", ".mdx"],
     dir: "src/server/pages",
   });
 };
@@ -28,20 +28,18 @@ const app = new Elysia().onRequest(async (ctx) => {
     });
   }
 
-  const pages = import.meta.glob("/server/pages/*.tsx", {
+  const pages = import.meta.glob("/server/pages/**/*.{tsx,mdx}", {
     eager: true,
   });
 
   const Page = (pages[`/server/pages/${matchRoute.src}`] as any).default();
 
-  const Wrapper = <main id={MAIN_ROUTER_ELEMENT_ID}>{Page}</main>;
-
   const html = contentToString(
-    ctx.request.headers.get("Sec-Fetch-Dest") === "iframe" ||
+    ctx.request.headers.get("Fx-Request") ||
       pathname.startsWith(FRAGMENT_PREFIX) ? (
-      Wrapper
+      Page
     ) : (
-      <Layout>{Wrapper}</Layout>
+      <Layout initialPath={matchRoute.pathname}>{Page}</Layout>
     ),
   ) as string;
 

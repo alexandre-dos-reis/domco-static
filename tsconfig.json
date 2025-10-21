@@ -18,14 +18,12 @@
     "checkJs": true,
     "jsx": "react-jsx",
     "jsxImportSource": "@kitajs/html",
-    /* Strict */
     "strict": true,
     "noUnusedLocals": true,
     "noImplicitOverride": true,
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
-    /* Aliases */
     "paths": {
       "@": [
         "./src"

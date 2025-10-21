@@ -11,7 +11,15 @@ export const Link = ({
   ...p
 }: Props) => {
   return (
-    <a {...p} target={`#${MAIN_ROUTER_ELEMENT_ID}`}>
+    <a
+      {...p}
+      fx-method="get"
+      fx-action={p.href}
+      fx-trigger="click"
+      fx-target="#main"
+      fx-swap="innerHTML"
+      fx-push-url
+    >
       {children}
     </a>
   );

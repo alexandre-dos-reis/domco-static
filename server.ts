@@ -18,7 +18,7 @@ const serveAssets = sirv("dist/client", {
 console.log(`Server listening on http://localhost:3000`);
 
 createServer((req, res) => {
-  if (req.headers["sec-fetch-dest"] === "iframe") {
+  if (req.headers["fx-request"]) {
     req.url = join(FRAGMENT_PREFIX, String(req.url));
   }
   return serveAssets(req, res);
