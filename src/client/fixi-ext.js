@@ -1,6 +1,5 @@
-
 document.addEventListener("fx:after", (e) => {
-  if ((e.target as HTMLElement)?.hasAttribute("fx-push-url")) {
+  if (e.target?.hasAttribute("fx-push-url")) {
     history.replaceState({ fixi: true, url: location.href }, "", location.href);
     history.pushState(
       { fixi: true, url: e.detail.cfg.response.url },
