@@ -1,8 +1,3 @@
-import finishersImg from "@/server/assets/finishers.jpg";
-import volvoImg from "@/server/assets/volvo.jpg";
-import universPaieImg from "@/server/assets/univers-paie.jpg";
-import gumImg from "@/server/assets/gum.jpg";
-import gilleAgriImg from "@/server/assets/gille-agri.fr.png";
 import type { PageConfig } from "../types";
 
 export const config = { title: "Accueil" } satisfies PageConfig;
@@ -174,8 +169,8 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src={finishersImg}
-            alt=""
+            src="/finishers.jpg"
+            alt="Finishers"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="750"
             height="422"
@@ -197,8 +192,8 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src={volvoImg}
-            alt=""
+            src="/volvo.jpg"
+            alt="Volvo trucks blainville"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1068"
             height="730"
@@ -220,8 +215,8 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src={universPaieImg}
-            alt="Univers Paie"
+            src="/univers-paie.jpg"
+            alt="Univers Paie | Hr Path"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1280"
             height="719"
@@ -245,7 +240,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src={gumImg}
+            src="/gum.jpg"
             alt=""
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1400"
@@ -275,8 +270,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src={gilleAgriImg}
-            alt="Legoff & Gille | Gille Agri"
+            src="/gille-agri.fr.png"
             class="block w-full h-56 object-cover transition-all opacity-70 hover:opacity-30 hover:scale-105"
           />
         </a>

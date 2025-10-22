@@ -1,5 +1,4 @@
 import { contentToString } from "@kitajs/html";
-import { Elysia } from "elysia";
 import { Layout } from "./Layout";
 import { FRAGMENT_PREFIX } from "./contants";
 import { join } from "node:path";
@@ -8,7 +7,6 @@ import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
 import { frontmatterSchema, sendHtml } from "./utils";
 import type { PageConfig } from "./types";
-import { z } from "zod";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -18,8 +16,8 @@ const getRouter = () => {
   });
 };
 
-const app = new Elysia().onRequest(async (ctx) => {
-  const { pathname } = new URL(ctx.request.url);
+const fetch = (req: Request) => {
+  const { pathname } = new URL(req.url);
 
   const router = getRouter();
 
@@ -62,8 +60,7 @@ const app = new Elysia().onRequest(async (ctx) => {
   );
 
   const isFragment =
-    !!ctx.request.headers.get("Fx-Request") ||
-    pathname.startsWith(FRAGMENT_PREFIX);
+    !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
 
   const html = contentToString(
     isFragment ? (
@@ -76,10 +73,10 @@ const app = new Elysia().onRequest(async (ctx) => {
   ) as string;
 
   return sendHtml(html);
-});
+};
 
 export default {
-  fetch: app.fetch,
+  fetch,
   prerender: () => {
     const routes = Object.keys(getRouter().routes);
     return [...routes, ...routes.map((r) => join(FRAGMENT_PREFIX, r))];
