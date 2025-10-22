@@ -1,0 +1,315 @@
+---
+title: "Serveur DHCP sous Debian 10 Buster"
+date: 26 Apr 2021
+draft: false
+---
+
+## Documentations et dépendences
+
+Version isc-dhcp-server 4.4.1-2 - [Documentation](https://kb.isc.org/docs/aa-00333)
+
+## Présentation
+
+*Dynamic Host Configuration Protocol* est un protocole réseau de configuration dynamique des hôtes dont le rôle est d’assurer la configuration automatique des paramètres IP d’une station ou d'une machine, notamment en lui attribuant automatiquement une adresse IP et un masque de sous-réseau. DHCP peut aussi configurer l’adresse de la passerelle par défaut, des serveurs de noms DNS et des serveurs de noms WINS.
+
+DHCP utilise le protocole UDP avec les ports 68 et 67.
+
+Pour gérer la distribution des adresses, le serveur DHCP utilse un système de bail avec plusieurs requêtes de negociations avec le client. Voici le processus d'acquisition d'une adresse :
+
+*DHCP Discover*: Un client hôte cherche à obtenir une adresse IP mais il ne connait pas l'adresse du serveur DHCP. Il inscrit sur le champ d'adresse source *0.0.0.0* et *255.255.255.255* sur le champ d'adresse de destination. Cette trame est donc envoyé à tous les hôtes du réseau dans l'espoir d'y trouver un serveur DHCP.
+
+*DHCP Offer* Si la requête discover atteint un serveur DHCP, ce dernier doit lui répondre avec un message DHCP offer. Pour cela, le serveur DHCP doit disposer d'une étendue d'adresse à distribuer. L'adresse proposée sera inscrite sur le champ YIADDR de l'en-tête DHCP. A son tour le DHCP ne connait pas l'adresse IP de l'hôte qui en fait la demande car celui-ci n'a pas encore accepté l'adresse proposée, c'est donc l'adresse MAC qui permet aux commutateurs du réseaux de renvoyer la trame vers le client. Le serveur DHCP envoit dans son offre des options comme:
+
+- Le masque de sous-réseau
+- L'adresse de la passerelle par défaut
+- L'adresse du serveur de nom
+- Le nom de domaine à utiliser
+
+*DHCP Request*: Le client a bien reçu la proposition du serveur DHCP cependant il doit confimer l'attribution d'adresse. Le client n'ayant toujours pas d'adresse IP, il envoit donc toujours sa réponse avec pour adresse source *0.0.0.0* et *255.255.255.255* pour adresse de destination. En cas de plusieurs serveurs DHCP présents sur un même réseau, l'option DHCP server identifier contient l'adresse IP du serveur DHCP en question, ce qui lui permet de se reconnaître lorsqu'il recevra la réponse du client.
+
+*DHCP ACK*: C'est la dernière étape dans l'acquisition de l'adresse, le serveur DHCP confirme au client que l'adresse lui a bien été attribuée et qu'elle ne sera pas distribuée à une autre machine. Le serveur DHCP attend désormais que l'adresse distribuée se libère s'il veut l'assigner à un autre client.
+
+L'adresse est délivrée pour une durée limitée (durée du bail ou lease time).
+
+Si l'hôte n'a pas pu obtenir d'adresse IP, il utilisera une attribution automatique d'adresse IP nommée *APIPA* pour **Automatic Private Internet Protocol Addressing**. Apipa utilise la plage d'adresses IP *169.254.0.0/16*. Cette plage est réservée à cet usage auprès de [l'IANA](https://www.iana.org/).
+
+## Prérequis
+
+### Nom d'hôte
+
+Il va falloir changer le nom d'hôte comme ceci :
+
+<AP>hostnamectl set-hostname dhcp-server</AP>
+
+<AP>nano /etc/hosts</AP>
+
+```make
+127.0.0.1       localhost
+127.0.1.1       dhcp-server
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+```
+
+### Adresse IP statique
+
+On cherche à connaitre le nom de nos cartes réseaux avec :
+
+<AP>ip a</AP>
+
+```make
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 08:00:27:94:4c:1d brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic enp0s3
+       valid_lft 85692sec preferred_lft 85692sec
+    inet6 fe80::a00:27ff:fe94:4c1d/64 scope link
+       valid_lft forever preferred_lft forever
+3: enp0s8: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
+    link/ether 08:00:27:3b:42:16 brd ff:ff:ff:ff:ff:ff
+```
+
+La carte *enp0s8* n'est pas utilisée, on va lui implémenter une adresse Ipv4 statique, c'est par elle que passeront les négociations avec le client.
+
+On ajoute les lignes suivantes au fichier `/etc/network/interfaces`:
+
+```make
+# DHCP network interface
+allow-hotplug enp0s8
+auto enp0s8
+iface enp0s8 inet static
+address 192.168.0.1/24
+```
+
+On a définit l'adresse *192.168.0.1* avec un masque à */24*, c'est à dire *255.255.255.0*
+
+On n'oublie pas d'activer la configuration pour la carte réseau que l'on vient de modifier avec :
+
+<AP>sudo ifup enp0s8</AP>
+
+## Installation de isc-dhcp-server
+
+ISC DHCP est une solution complète et open source pour l'implémentation de serveurs DHCP, d'agents de relais et de clients. ISC DHCP supporte IPv4 ainsi que IPv6. Il est utilisable à haut volume et avec des applications de haute fiabilité. Il est disponible en téléchargement libre sous les termes de la licence MPL 2.0. 
+
+On met à jour nos dépôts : 
+
+<AP>sudo apt update</AP>
+
+L'installation se fait comme ceci :
+
+<AP>sudo apt install isc-dhcp-server</AP>
+
+Après l'installation, le processus se met en échec car aucune étendue d'adresse à distribuer n'a été configurée.
+
+```make
+isc-dhcp-server.service - LSB: DHCP server
+   Loaded: loaded (/etc/init.d/isc-dhcp-server; generated)
+   Active: failed (Result: exit-code) since Sat 2021-05-29 12:06:16 CEST; 16ms ago
+     Docs: man:systemd-sysv-generator(8)
+  Process: 1158 ExecStart=/etc/init.d/isc-dhcp-server start (code=exited, status=1/FAILURE)
+```
+
+En cas d'errreur, on peut consulter le journal d'erreur des servicers avec la commandes :
+
+<AP>sudo journalctl -xe</AP>
+
+## Configuration du service
+
+### Choix de l'interface
+
+ On a besoin d'éditer le fichier */etc/default/isc-dhcp-server* pour spécifier les interfaces que dhcpd (le démon de isc-dhcp-server) devra écouter. Par défaut, il écoute l'interface eth0. Les interfaces réseaux du serveur doivent être configurées obligatoirement en adresses IP statiques.
+
+<AP>sudo nano /etc/default/isc-dhcp-server</AP>
+
+Et modifier comme ceci :
+
+```make
+INTERFACESv4="enp0s8"
+#INTERFACESv6="enp0s8"
+```
+
+Ici, on commente l'interface pour IPv6 sinon il faudra spécifier une étendue IPv6 sous peine de mettre en échec le service dhcpd.
+
+### Réglages basiques
+
+Dans ce fichier, on définit l'ensemble des options globalement ou par réseau. Le fichier se trouve ici : */etc/dhcp/dhcpd.conf*. Evidemment, on effectuera une sauvegarde de ce fichier avant de le modifier.
+
+<AP>cd /etc/dhcp/</AP>
+<AP>sudo cp dhcpd.conf dhcpd.conf.backup</AP>
+<AP>sudo nano dhcpd.conf</AP>
+
+Voici la configuration miminum pour une distribution sur le réseau 192.168.0.0 :
+
+```make
+# Durée de bail par défaut
+default-lease-time 600;
+
+# Durée maximale du bail
+max-lease-time 7200;
+
+# Mise à jour dynamique du DNS par le service DHCP
+ddns-update-style none;
+
+# Etendue d'adresse pour le réseau 192.168.0.0/24
+subnet 192.168.0.0 netmask 255.255.255.0 {
+  range 192.168.0.50 192.168.0.100;
+  option routers 192.168.0.254;
+}
+```
+
+**Attention !** Si on ajoute des options qui ne sont pas présentes dans le réseau comme par exemple une adresse IPv4 de serveur de nom, le service DHCP se mettra en échec.
+
+### Réglages avancés
+
+Toujours dans le fichier */etc/dhcp/dhcpd.conf*, on peut définir des options avancées les informations relatives au domaine, des adresses IP fixe pour certains hôtes en particulier.
+
+```make
+# Spécifie le nom de domaine et les adresses des serveurs DNS.
+option domain-name "test.local";
+option domain-name-servers ns1.test.local, ns2.test.local;
+
+# A activer si ce serveur DHCP est seul sur le réseau local
+authoritative;
+
+# Pour envoyer les logs vers un autre fichier 
+# Il faut également modifier le fichier syslog.conf pour compléter la redirection.
+log-facility local7;
+
+# Exemple de plages d'adresses plus spécifique :
+# Ici ces options prennent le pas sur les options par défaut.
+subnet 10.0.0.0 netmask 255.0.0.0 {
+  range 10.0.0.20 10.0.1.20;
+  option domain-name-servers ns1.mondomaine.local;
+  option domain-name "mondomaine.local";
+  option routers 10.255.255.254;
+  option broadcast-address 10.255.255.255;
+  default-lease-time 600;
+  max-lease-time 7200;
+}
+
+# Configuration d'un hôte avec IP fixée
+host ftp {
+  hardware ethernet 00:0f:75:af:eb:44;
+  fixed-address 192.168.0.49;
+} 
+```
+
+## Test d'attribution d'adresse
+
+Pour effectuer un test, il faut que la machine cliente soit située dans le même réseau que le serveur DHCP.
+
+Il faut également que la configuration réseau de la machine cliente au niveau de la carte réseau soit en récupération automatique d'adresse via DHCP, comme par exemple :
+
+```make
+# The primary network interface
+allow-hotplug enp0s3
+iface enp0s3 inet dhcp
+```
+
+Dans notre cas sur une autre machine Debian :
+
+```make
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 08:00:27:17:a1:3d brd ff:ff:ff:ff:ff:ff
+    inet 192.168.0.50/24 brd 192.168.0.255 scope global dynamic enp0s3
+       valid_lft 600sec preferred_lft 600sec
+    inet6 fe80::a00:27ff:fe17:a13d/64 scope link
+       valid_lft forever preferred_lft forever
+```
+
+La machine cliente a bien récupéré la 1ère adresse que l'on avait définit dans l'étendue du fichier de configuration.
+
+## Journaux de logs
+
+### Service dhcpd
+
+Par défaut, les logs du service DHCP se trouvent dans */var/log/syslog*, mais cela peut être changé dans *etc/dhcp/dhcpd.conf*.
+
+```make
+May 29 13:18:20 debian dhcpd[1584]: DHCPDISCOVER from 08:00:27:17:a1:3d via enp0s8
+May 29 13:18:21 debian dhcpd[1584]: DHCPOFFER on 192.168.0.50 to 08:00:27:17:a1:3d (debian) via enp0s8
+May 29 13:18:21 debian dhcpd[1584]: DHCPREQUEST for 192.168.0.50 (192.168.0.1) from 08:00:27:17:a1:3d (debian) via enp0s8
+May 29 13:18:21 debian dhcpd[1584]: DHCPACK on 192.168.0.50 to 08:00:27:17:a1:3d (debian) via enp0s8
+```
+
+On retrouve bien nos 4 échanges entre le serveur et le client qui permettent l'obtention de l'adresse IP.
+
+### Déplacer la sortie des logs
+
+Dans le fichier */etc/dhcp/dhcpd.conf*, décommenter la ligne suivante :
+
+```make
+log-facility local7;
+```
+
+Puis Créer le fichier */var/log/dhcpd.log* avec comme propriétaire syslog (droits rw) et comme groupe adm (droits r).
+
+<AP>sudo touch /var/log/dhcpd.log</AP>
+<AP>sudo chown syslog:adm /var/log/dhcpd.log</AP>
+<AP>sudo chmod 0640 /var/log/dhcpd.log</AP>
+
+Puis ajouter ceci dans le fichier */etc/rsyslog.d/50-default.conf* :
+
+```make
+local7.*          /var/log/dhcpd.log
+```
+
+Pour ne plus logguer dans syslog, dans */etc/rsyslog.d/50-default.conf* modifier :
+
+```make
+*.*;auth,authpriv.none              -/var/log/syslog
+```
+
+en 
+
+```make
+*.*;auth,authpriv.none;local7.none              -/var/log/syslog
+```
+
+Et relancer les services syslog et isc-dhcp-server :
+
+<AP>sudo service rsyslog restart</AP>
+<AP>sudo service isc-dhcp-server restart</AP>
+
+### Baux
+
+Par défaut, le fichier */var/lib/dhcp/dhcpd.leases* donne des informations sur les baux actuellement distribués par le serveur. On y retrouve des informations essentielles comme l'adresse IP distribuée à une adresse MAC, le nom de la machine qui a fait cette demande DHCP, l'heure de début et de fin du bail.
+
+```make
+lease 192.168.0.50 {
+  starts 6 2021/05/29 11:26:58;
+  ends 6 2021/05/29 11:36:58;
+  cltt 6 2021/05/29 11:26:58;
+  binding state active;
+  next binding state free;
+  rewind binding state free;
+  hardware ethernet 08:00:27:17:a1:3d;
+  uid "\377'\027\241=\000\001\000\001(>\031\213\010\000'\366\336\316";
+  client-hostname "debian";
+}
+```
+
+## Notes
+
+### Problème du double processus
+
+Lorsque le service a planté à de trop de nombreuses reprises suite à une mauvaise configuration, même si celle-ci redevient bonne, le service restera toujours en échec à cause d'un double processus.
+
+On peut executer cette commande pour retrouver le PID en question :
+
+<AP>ps -e | grep dhcp</AP>
+
+Il faudra ensuite prendre le numéro et le forcer à quitter comme ceci :
+
+<AP>kill -kill 1678</AP>
+
+Supprimer également le fichier suivant :
+
+<AP>rm /var/run/dhcpd.pid</AP>

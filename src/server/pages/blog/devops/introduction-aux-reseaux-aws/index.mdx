@@ -1,0 +1,81 @@
+---
+title: "Introduction aux réseaux AWS"
+date: "11 Jan 1111"
+draft: true
+---
+
+https://www.youtube.com/watch?v=bweJ3TZ5ynI&t=679s
+
+## Pourquoi AWS ?
+
+Amazon a commencé à avoir des problèmes de communications entre les différents services et départements à cause du développement trop rapide de l'entreprise. Pour palier à ce problème, Jeff Bezos le fondateur a demandé à tous les départements, que ce soit la comptabilité ou les ressources humaines, de rendre leur données accessibles en créant une API.
+
+Fort de ce succès pour l'entreprise en terme d'efficacité, Amazon a décidé de rendre ses services accessible à ses partenaires mais plutôt que de continuer dans cette voie et aimant le concept du partage des ses propres ressources, Amazon entreprend de créer en 2006 Amazon Simple Storage Service (S3) et de le rendre accessible au public.
+
+Toujours en 2006, Amazon sort Amazon Simple Queue Service qui permet d'avoir une pile, une liste d'attente ... A développer et Amazon EC2 pour Elastic Computing Cloud qui sont des VM accessibles dans le Cloud.
+
+Suite à l'agrandissement de leur service, Amazon sort en 2009 Amazon VPC qui fournit aux utilisateurs une section de réseau au sein d'AWS.
+
+## Comment fonctionnait AWS avant l'arrivé de Amazon VPC ?
+
+Dans le monde AWS une machine Virtuelle est appelée une Instance qui possédait une adresse IP publique accessible depuis l'internet et une adresse IP "privée" Amazon. Si deux entreprises possédaient un compte AWS avec plusieurs instances, leur instances étaient toutes dans le seul et même réseau "privée" Amazon.
+
+Le problème de cette structure est que certains services ne nécessitent pas d'authentification donc l'entreprise A pouvait accéder aux services de l'entreprise B car leurs instances étaient dans le même réseau. Amazon avait protégé son réseau privée par l'utilisation de Security Group et de pare-feu mais peu pratiques à mettre en place ce qui a motivé Amazon à sortir Amazon VPC.
+
+## Amazon Virtual Private Cloud
+
+### Découpage
+Le réseau Amazon ressemble à une imbrication de poupées russes ou de couches. AWS est découpée en plusieurs partitions, elles mêmes découpées en plusieurs régions.
+
+### Partition
+Partitions AWS :
+
+- AWS
+- AWS-CN
+- AWS-US-GOV
+
+### Région
+La partition principale nommé AWS comporte plusieurs régions comme :
+
+- US East (Ohio)
+- US East (N. Virginia)
+- US West (N. California)
+- US West (Oregon)
+- Africa (Cape Town)
+- Asia Pacific (Hong Kong)
+- Europe (London)
+- Europe (Milan)
+- Europe (Paris)
+- Middle East (Bahrain)
+- South America (São Paulo)
+
+### VPC
+Une région comporte plusieurs VPC :
+
+Un VPC est utile pour créer des cloisonnements entre les différentes applications.
+
+### Availability Zone
+
+### Private Subnet
+
+Impossibilité pour Internet d'accéder à ce public comme une BDD, etc... Pour un question de sécurité, on doit mettre le maximum de serveur dans les réseaux privés.
+
+### Public Subnet
+
+Disponible depuis l'Internet comme un Load Balancer ou un serveur Web.
+
+### Instance
+
+Une instance est un serveur ou une machine virtuelle.
+
+### Security Group
+
+Similaire à un pare-feu, le groupe de sécurité peut envelopper plusieurs instances.
+
+## Route Table
+
+Pour faire communiquer tous nos services entre eux,  il est nécessaire d'utiliser une table de routage. Une table de routage ne peut pas sortir de sa région.
+
+## VPC Peering Connection
+
+Permet de connecter plusieurs instances dans des régions différentes.

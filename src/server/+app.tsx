@@ -5,16 +5,8 @@ import { join } from "node:path";
 import { ActionPill } from "./components/ActionPill";
 import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
-import { frontmatterSchema, sendHtml } from "./utils";
+import { frontmatterSchema, getRouter, sendHtml } from "./utils";
 import type { PageConfig } from "./types";
-
-const getRouter = () => {
-  return new Bun.FileSystemRouter({
-    style: "nextjs",
-    fileExtensions: [".tsx", ".mdx"],
-    dir: "src/server/pages",
-  });
-};
 
 const fetch = (req: Request) => {
   const { pathname } = new URL(req.url);
@@ -62,19 +54,14 @@ const fetch = (req: Request) => {
   const isFragment =
     !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
 
-  // TODO: Handle changing head tag with fixi.
-
   const html = contentToString(
-    isFragment ? (
-      Page
-    ) : (
-      <Layout
-        title={frontmatter?.title || exports.config?.title}
-        disableSEO={exports.config?.disableSEO}
-      >
-        {Page}
-      </Layout>
-    ),
+    <Layout
+      isFragment={isFragment}
+      title={frontmatter?.title || exports.config?.title}
+      disableSEO={exports.config?.disableSEO}
+    >
+      {Page}
+    </Layout>,
   ) as string;
 
   return sendHtml(html);

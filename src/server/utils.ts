@@ -1,4 +1,5 @@
 import z from "zod";
+import { join } from "path";
 
 export const sendHtml = (body?: BodyInit | null, init?: ResponseInit) =>
   new Response(body, {
@@ -11,3 +12,11 @@ export const frontmatterSchema = z.object({
   date: z.string().optional(),
   draft: z.boolean().default(false),
 });
+
+export const getRouter = (subDir?: string) => {
+  return new Bun.FileSystemRouter({
+    style: "nextjs",
+    fileExtensions: [".tsx", ".mdx"],
+    dir: join(`src/server/pages`, subDir || ""),
+  });
+};

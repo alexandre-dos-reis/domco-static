@@ -1,1 +1,6 @@
 @import "tailwindcss";
+@import "@wooorm/starry-night/style/both";
+
+body {
+  @apply overflow-y-scroll;
+}

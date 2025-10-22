@@ -1,0 +1,327 @@
+---
+title: "Routeur Cisco - NAT et PAT"
+date: 26 Apr 2021
+draft: false
+---
+
+## Version
+
+Cisco IOS Software, Version 15.0(2)SE4
+
+## Présentation
+
+En réseau informatique, on dit qu'un routeur fait du network address translation (NAT) (« traduction d'adresse réseau » ou « translation d'adresse réseau ») lorsqu'il fait correspondre des adresses IP à d'autres adresses IP. En particulier, un cas courant est de permettre à des machines disposant d'adresses privées qui font partie d'un intranet et ne sont ni uniques ni routables à l'échelle d'Internet, de communiquer avec le reste d'Internet en utilisant vers l'extérieur des adresses externes publiques, uniques et routables.
+
+Ainsi, il est possible de faire correspondre une seule adresse externe publique visible sur Internet à toutes les adresses d'un réseau privé, afin de pallier l'épuisement des adresses IPv4.
+
+La fonction NAT dans un routeur de service intégré (ISR) traduit une adresse IP source interne en adresse IP globale.
+
+Ce procédé est très largement utilisé par les box internet (ou modem routeur) des fournisseurs d’accès pour cacher les ordinateurs personnels derrière une seule identification publique. Il est également utilisé de façon similaire dans des réseaux privés virtuels.
+
+## Topologie
+
+Voici notre schéma de départ :
+
+![Schéma de départ Nat et Pat](./img/nat-pat.png)
+
+Le schéma est découpé en 3 réseaux distincts: _192.168.1.0/24_, _200.0.0.0/24_ et _192.168.2.0/24_ qui sont inter-connectés par les routeurs _R1_ et _R2_.
+
+## Prérequis
+
+Pour que le NAT et le PAT puissent fonctionner, il faut que chaque routeur puissent communiquer à l'autre les réseaux qu'il connait, on va utiliser le protocole RIP car c'est le plus simple à implémenter.
+
+Sur R1 :
+
+```
+R1(config)#router rip
+R1(config-router)#version 2
+R1(config-router)#passive-interface GigabitEthernet0/0
+R1(config-router)#network 192.168.1.0
+R1(config-router)#network 200.0.0.0
+R1(config-router)#no auto-summary
+```
+
+Sur R2 :
+
+```
+R2(config)#router rip
+R2(config-router)#version 2
+R2(config-router)#passive-interface GigabitEthernet0/0
+R2(config-router)#network 192.168.2.0
+R2(config-router)#network 200.0.0.0
+R2(config-router)#no auto-summary
+```
+
+## NAT statique
+
+L'objectif est de donner une adresse externe au serveur SRV01 sur le routeur R1, ainsi les machines présentes dans le réseau de 192.168.2.0 n'auront pas à connaitre l'adresse IP privée du SRV01 mais seulement son adresse sur le réseau 200.0.0.0 et c'est le routeur R1 qui se chargera de faire la traduction.
+
+### Configuration de R1
+
+Sur l'interface interne _GigabitEthernet0/1_ de R1 du réseau _192.168.1.0_ :
+
+```
+R1(config)#interface GigabitEthernet 0/0
+R1(config-if)#description "interface interne"
+R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#ip nat inside
+```
+
+Sur l'interface externe _Serial0/1/0_ de R1 du réseau _200.0.0.0_ :
+
+```
+R1(config)#interface Serial0/1/0
+R1(config-if)#description "interface externe"
+R1(config-if)#ip address 200.0.0.1 255.255.255.0
+R1(config-if)#ip nat outside
+```
+
+On déclare l'enregistrement NAT statique pour _SRV01_ :
+
+```
+R1(config)#ip nat inside source static 192.168.1.11 200.0.0.11
+```
+
+### Test de ping sur SRV01
+
+On essai de pinger sur l'adresse externe de _SRV01_ avec la machine _192.168.2.21_ sur _200.0.0.11_:
+
+```
+C:\>ping 200.0.0.11
+
+Pinging 200.0.0.11 with 32 bytes of data:
+
+Request timed out.
+Reply from 200.0.0.11: bytes=32 time=13ms TTL=126
+Reply from 200.0.0.11: bytes=32 time=13ms TTL=126
+Reply from 200.0.0.11: bytes=32 time=1ms TTL=126
+
+Ping statistics for 200.0.0.11:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 1ms, Maximum = 13ms, Average = 9ms
+```
+
+## NAT dynamique
+
+L'objectif est de déclarer une étendue d'adresse qui seront à routable sur le réseau _200.0.0.0_ pour les machines du réseau _192.168.2.0_.
+
+### Configuration de R2
+
+Sur l'interface interne _GigabitEthernet0/0_ de R1 du réseau _192.168.1.0_ :
+
+```
+R2(config)#interface GigabitEthernet 0/0
+R2(config-if)#description "interface interne"
+R2(config-if)#ip address 192.168.2.1 255.255.255.0
+R2(config-if)#ip nat inside
+```
+
+Sur l'interface externe _Serial0/1/1_ de R1 du réseau _200.0.0.0_ :
+
+```
+R2(config)#interface Serial0/1/0
+R2(config-if)#description "interface externe"
+R2(config-if)#ip address 200.0.0.2 255.255.255.0
+R2(config-if)#ip nat outside
+```
+
+On déclare via une ACL, une permission pour le réseau 192.168.2.0 sinon le NAT ne fonctionnera pas :
+
+```
+R1(config)#access-list 1 permit 192.168.2.0 0.0.0.255
+```
+
+On déclare une étendue d'adresse pour un NAT dynamique pour les machines du réseau _192.168.2.0_ puis on l'affecte :
+
+```
+R2(config)#ip nat pool POOL-SITE02 200.0.0.128 200.0.0.130 netmask 255.255.255.0
+R2(config)#ip nat inside source list 1 pool POOL-SITE02
+```
+
+ip nat pool POOL-SITE02 200.0.0.128 200.0.0.130 netmask 255.255.255.0
+ip nat inside source list 1 pool POOL-SITE02
+
+### Test de ping sur SRV01
+
+On essai de pinger sur l'adresse externe de _SRV01_ avec la machine _192.168.2.21_ sur _192.168.1.11_:
+
+```
+C:\>ping 200.0.0.11
+
+Pinging 200.0.0.11 with 32 bytes of data:
+
+Request timed out.
+Reply from 200.0.0.11: bytes=32 time=13ms TTL=126
+Reply from 200.0.0.11: bytes=32 time=13ms TTL=126
+Reply from 200.0.0.11: bytes=32 time=1ms TTL=126
+
+Ping statistics for 200.0.0.11:
+    Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 1ms, Maximum = 13ms, Average = 9ms
+```
+
+Pour voir le NAT, on effectue ces commandes sur le routeur R2 :
+
+```
+R2#sh ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+icmp 200.0.0.128:15    192.168.2.21:15    192.168.1.11:15    192.168.1.11:15
+icmp 200.0.0.128:16    192.168.2.21:16    192.168.1.11:16    192.168.1.11:16
+icmp 200.0.0.128:17    192.168.2.21:17    192.168.1.11:17    192.168.1.11:17
+icmp 200.0.0.128:18    192.168.2.21:18    192.168.1.11:18    192.168.1.11:18
+```
+
+```
+R2#sh ip nat statistics
+Total translations: 4 (0 static, 4 dynamic, 4 extended)
+Outside Interfaces: Serial0/1/1
+Inside Interfaces: GigabitEthernet0/0
+Hits: 15  Misses: 355
+Expired translations: 14
+Dynamic mappings:
+-- Inside Source
+access-list 1 pool POOL-SITE02 refCount 4
+ pool POOL-SITE02: netmask 255.255.255.0
+       start 200.0.0.128 end 200.0.0.130
+       type generic, total addresses 3 , allocated 1 (33%), misses 0
+```
+
+## PAT statique
+
+Le serveur web SRV01 sera joignable sur la même adresse que l'interface du routeur R1 mais sur le port 8080, c'est R1 qui se chargera de router les requetes vers l'adresse 192.168.1.11 du port 80.
+
+### Configuration de R1
+
+Sur l'interface interne _GigabitEthernet0/1_ de R1 du réseau _192.168.1.0_ :
+
+```
+R1(config)#interface GigabitEthernet 0/0
+R1(config-if)#description "interface interne"
+R1(config-if)#ip address 192.168.1.1 255.255.255.0
+R1(config-if)#ip nat inside
+```
+
+Sur l'interface externe _Serial0/1/0_ de R1 du réseau _200.0.0.0_ :
+
+```
+R1(config)#interface Serial0/1/0
+R1(config-if)#description "interface externe"
+R1(config-if)#ip address 200.0.0.1 255.255.255.0
+R1(config-if)#ip nat outside
+```
+
+On déclare l'enregistrement PAT statique pour _SRV01_ :
+
+```
+R1(config)#ip nat inside source static tcp 192.168.1.11 80 200.0.0.1 8080
+```
+
+### Test de requête HTTP sur SRV01
+
+On test le protocole sur l'adresse externe de _SRV01_ avec la machine _192.168.2.21_ sur _200.0.0.1:8080_, puis on regarde sur R1 :
+
+```
+do sh ip nat translation
+Pro  Inside global     Inside local       Outside local      Outside global
+tcp 200.0.0.1:8080     192.168.1.11:80    200.0.0.2:1027     200.0.0.2:0
+```
+
+```
+R1#sh ip nat stat
+Total translations: 2 (1 static, 1 dynamic, 2 extended)
+Outside Interfaces: Serial0/1/0
+Inside Interfaces: GigabitEthernet0/0
+Hits: 129  Misses: 135
+Expired translations: 0
+Dynamic mappings:
+Router(config)#
+```
+
+On peut aussi débugger avec cette commande :
+
+```
+R1#debug ip nat
+IP NAT debugging is on
+
+NAT: s=200.0.0.2, d=200.0.0.1->192.168.1.11 [104]
+
+NAT*: s=192.168.1.11->200.0.0.1, d=200.0.0.2 [70]
+
+NAT*: s=200.0.0.2, d=200.0.0.1->192.168.1.11 [105]
+
+NAT*: s=200.0.0.2, d=200.0.0.1->192.168.1.11 [106]
+
+NAT*: s=192.168.1.11->200.0.0.1, d=200.0.0.2 [71]
+
+NAT*: s=200.0.0.2, d=200.0.0.1->192.168.1.11 [107]
+
+NAT*: s=192.168.1.11->200.0.0.1, d=200.0.0.2 [72]
+
+NAT*: s=200.0.0.2, d=200.0.0.1->192.168.1.11 [108]
+```
+
+## PAT Dynamique
+
+On veut surcharger R2 en utilisant uniquement l'adresse de l'interface externe du routeur R2 à savoir _200.0.0.2_
+
+### Configuration de R2
+
+Sur l'interface interne _GigabitEthernet0/0_ de R1 du réseau _192.168.1.0_ :
+
+```
+R2(config)#interface GigabitEthernet 0/0
+R2(config-if)#description "interface interne"
+R2(config-if)#ip address 192.168.2.1 255.255.255.0
+R2(config-if)#ip nat inside
+```
+
+Sur l'interface externe _Serial0/1/1_ de R1 du réseau _200.0.0.0_ :
+
+```
+R2(config)#interface Serial0/1/0
+R2(config-if)#description "interface externe"
+R2(config-if)#ip address 200.0.0.2 255.255.255.0
+R2(config-if)#ip nat outside
+```
+
+On déclare via une ACL, une permission pour le réseau 192.168.2.0 sinon le NAT ne fonctionnera pas :
+
+```
+R1(config)#access-list 1 permit 192.168.2.0 0.0.0.255
+```
+
+On déclare une étendue d'adresse pour une étendue de PAT dynamique pour les machines du réseau _192.168.2.0_ :
+
+```
+R1(config)#ip nat inside source list 1 interface Serial0/1/1 overload
+```
+
+### Test HTTP sur SRV01
+
+On test le protocole http sur l'adresse externe de _SRV01_ avec la machine _192.168.2.21_ sur _200.0.0.1_ port _8080_ :
+
+Pour voir le PAT, on effectue ces commandes sur le routeur R2 :
+
+```
+R2#sh ip nat translations
+Pro  Inside global     Inside local       Outside local      Outside global
+tcp 200.0.0.2:1025     192.168.2.21:1025  192.168.1.11:80    192.168.1.11:80
+tcp 200.0.0.2:1026     192.168.2.21:1026  192.168.1.11:80    192.168.1.11:80
+tcp 200.0.0.2:1027     192.168.2.21:1027  192.168.1.11:80    192.168.1.11:80
+tcp 200.0.0.2:1028     192.168.2.21:1028  200.0.0.11:80      200.0.0.11:80
+tcp 200.0.0.2:1029     192.168.2.21:1029  200.0.0.11:80      200.0.0.11:80
+tcp 200.0.0.2:1030     192.168.2.21:1030  200.0.0.11:80      200.0.0.11:80
+tcp 200.0.0.2:1037     192.168.2.21:1037  200.0.0.1:8080     200.0.0.1:8080
+```
+
+```
+Router#sh ip nat stat
+Total translations: 8 (0 static, 8 dynamic, 8 extended)
+Outside Interfaces: Serial0/1/1
+Inside Interfaces: GigabitEthernet0/0
+Hits: 112  Misses: 346
+Expired translations: 7
+Dynamic mappings:
+```

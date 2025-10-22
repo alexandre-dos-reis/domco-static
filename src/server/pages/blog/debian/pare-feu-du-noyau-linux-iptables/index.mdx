@@ -1,0 +1,29 @@
+---
+title: "Pare-feu du noyau Linux : Iptables"
+date: 00 Oct 0000
+draft: true
+---
+
+## Présentation
+
+iptables est un logiciel libre de l'espace utilisateur Linux grâce auquel l'administrateur système peut configurer les chaînes et règles dans le pare-feu en espace noyau (et qui est composé par des modules Netfilter).
+
+Différents programmes sont utilisés selon le protocole employé : iptables est utilisé pour le protocole IPv4, Ip6tables pour IPv6, Arptables pour ARP (Address Resolution Protocol) ou encore Ebtables, spécifique aux trames Ethernet.
+
+Ce type de modifications doit être réservé à un administrateur du système. Par conséquent, son utilisation nécessite l'utilisation du compte root. L'utilisation du programme est refusée aux autres utilisateurs.
+
+Sur la plupart des distributions Linux, iptables est lancé par la commande /usr/sbin/iptables et documenté par sa page de manuel iptables2 et ip6tables3, laquelle peut être visualisée via la commande « man iptables ».
+
+iptables est également fréquemment utilisé pour faire référence aux composants de bas niveau (niveau kernel). x_tables est le nom du module noyau, plus générique, qui contient le code partagé pour les quatre protocoles. C'est aussi le module qui fournit l'API des extensions. Par conséquent, Xtables désigne usuellement le pare-feu complet (IPv4, IPv6, arp, eb).
+
+UFW plus simple à utiliser mais ne fait pas de redirection de port.
+
+https://openclassrooms.com/fr/courses/1946106-securisez-votre-reseau-grace-aux-vpn-et-firewall/5241686-rendez-votre-serveur-accessible-tout-en-le-securisant
+
+https://openclassrooms.com/fr/courses/43538-reprenez-le-controle-a-laide-de-linux/42264-analyser-le-reseau-et-filtrer-le-trafic-avec-un-pare-feu
+
+Voir aussi mail de Guimbretière.
+
+https://www.youtube.com/watch?v=ByTtN3pgnP0&list=PLn6POgpklwWrI_ri_djf3R3RCyDOsyKoC
+
+

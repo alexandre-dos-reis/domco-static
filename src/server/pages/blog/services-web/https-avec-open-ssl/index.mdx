@@ -1,0 +1,446 @@
+---
+title: "HTTPS avec OpenSSL"
+date: 26 Apr 2021
+draft: false
+---
+
+## Dépendences
+
+OpenSSL 3.0.0-alpha15 22 Apr 2021
+
+## Présentation
+
+L'HyperText Transfer Protocol Secure ou HTTPS, littéralement _protocole de transfert hypertextuel sécurisé_ est la combinaison du HTTP avec une couche de chiffrement comme SSL ou TLS.
+
+HTTPS permet au visiteur de vérifier l'identité du site web auquel il accède, grâce à un certificat d'authentification émis par une autorité tierce, réputée fiable (et faisant généralement partie de la liste blanche des navigateurs internet). Il garantit théoriquement la confidentialité et l'intégrité des données envoyées par l'utilisateur notamment des informations entrées dans les formulaires et reçues du serveur. Il peut permettre de valider l'identité du visiteur, si celui-ci utilise également un certificat d'authentification client.
+
+## Mise en situation
+
+L'objectif principal ici est la création d'un autorité de certification et la création de certificats SSL. Le certificat sera ensuite déployé sur le serveur Web Apache. Voici la topologie de la situation :
+
+| Machine            | OS          | Distribution  | Version | Rôle         | Nom d'hôte | IP         |
+| ------------------ | ----------- | ------------- | ------- | ------------ | ---------- | ---------- |
+| VM Virtual Box     | GNU / Linux | Debian        | 10.8    | Serveur HTTP | web1       | 172.16.0.1 |
+| Dell Latitude 3500 | Windows     | 10 Entreprise | 1903    | Client HTTP  | L019-163   | 172.16.x.x |
+
+## Mise à jour et installation
+
+OpenSSL est installé par défaut sur Debian, on peut vérifier avec la commande :
+
+<AP>openssl version</AP>
+
+```make
+OpenSSL 1.1.1d  10 Sep 2019
+```
+
+Les dépôts de paquets Debian n'étant pas toujours mis à jour avec les dernières versions, on va télécharger et installer à la main la dernière version. Se rendre sur [openssl.org/source](https://www.openssl.org/source) pour voir les dernières mises à jours.
+
+On télécharge la version qui nous intéresse et décompresse :
+
+<AP>wget https://www.openssl.org/source/openssl-3.0.0-alpha15.tar.gz</AP>
+
+<AP>tar -xzvf openssl-3.0.0-alpha15.tar.gz</AP>
+
+Il est nécessaire d'installer un compilateur C et Make pour construire l'application OpenSSL. On exécutera donc :
+
+<AP>apt install -y build-essential make</AP>
+
+On se rend dans le dossier openssl, il doit s'y trouver tous ces fichiers :
+
+```shell
+ACKNOWLEDGEMENTS.md  config            crypto    FAQ.md       ms                NOTES-UNIX.md      README-ENGINES.md    test
+apps                 config.com        demos     fuzz         NEWS.md           NOTES-VALGRIND.md  README-FIPS.md       tools
+appveyor.yml         configdata.pm.in  doc       HACKING.md   NOTES-ANDROID.md  NOTES-VMS.md       README.md            util
+AUTHORS.md           Configurations    engines   include      NOTES-DJGPP.md    NOTES-WINDOWS.md   README-PROVIDERS.md  VERSION.dat
+build.info           Configure         e_os.h    INSTALL.md   NOTES-NONSTOP.md  os-dep             ssl                  VMS
+CHANGES.md           CONTRIBUTING.md   external  LICENSE.txt  NOTES-PERL.md     providers          SUPPORT.md
+```
+
+On exécute un script qui détermine notre configuration système :
+
+<AP>./Configure</AP>
+
+Pour construire notre application, on fait tout simplement :
+
+<AP>make</AP>
+
+Cela devrait durer 5 bonnes minutes. Une fois fini, on test notre build avec :
+
+<AP>make test</AP>
+
+```make
+All tests successful.
+Files=233, Tests=3303, 356 wallclock secs (28.61 usr  0.71 sys + 273.47 cusr 28.28 csys = 331.07 CPU)
+Result: PASS
+```
+
+Si un des test a échoué, on peut se rendre sur la [doc](https://github.com/openssl/openssl/blob/master/INSTALL.md#build-failures) pour débugger.
+
+Si tous les test sont OK, on peut installer OpenSSL avec la commande suivante, là aussi prévoir 5 bonnes minutes :
+
+<AP>make install</AP>
+
+Une fois que l'installation s'est terminée et qu'elle a fini sans erreur, on effectue cette commande :
+
+<AP>ldconfig</AP>
+
+_ldconfig_ crée les liens et cache nécessaires vers les bibliothèques partagées les plus récentes trouvées dans les répertoires spécifiés sur la ligne de commande, dans le fichier _/etc/ld.so.conf_ et dans les répertoires approuvés _/lib_ et _/usr/lib_.
+
+On devrait avoir installé la dernière version d'OpenSSL :
+
+<AP>openssl version</AP>
+
+```make
+OpenSSL 3.0.0-alpha15 22 Apr 2021 (Library: OpenSSL 3.0.0-alpha15 22 Apr 2021)
+```
+
+## Configuration
+
+Il faut organiser les différents certificats de façon à ce que les clients et serveurs puissent les trouver et les tester. Il est possible de profiter de l'organisation proposée dans le fichier de configuration d’openssl nommé _openssl.cnf_.
+
+Celui-ci utilise l'organisation suivante :
+
+- _$dir_ : le répertoire de base où sont situés tous les différents certificats, clés privées, etc.
+- _$dir/certs_ : le répertoire où sont conservés les certificats (plus exactement, des noms de la forme hash.0)
+- _$dir/crl_ : le répertoire où sont conservées les listes de révocation.
+- _$dir/newcerts_ : le répertoire où sont stockés les certificats nouvellement créés.
+- _$dir/private_ : le répertoire où sont stockées les clés privées
+- _$dir/serial_ : le fichier qui contient le prochain numéro de série pour tout nouveau certificat qui sera créé. Il sert à initialiser le compteur de certificats.
+- _$dir/index.txt_ : le fichier d'index de la base de données des certificats (on peut le créer par la commande «
+  touch index.txt »).
+
+On va dans un premier temps créer l'architecture pour stocker nos certificats, clés privées et publiques.
+
+Créer un dossier dans le home qui devra appartenir à l'utilisateur courant.
+
+<AP>cd ~ && mkdir ssl && cd ssl</AP>
+
+Création de tous les dossiers :
+
+<AP>mkdir private certs crl newcerts</AP>
+
+Trouver et Copier le fichier de configuration d'OpenSSL nommé _openssl.cnf_ dans le répertoire _~/ssl_:
+
+<AP>find / -type f -name "openssl.cnf"</AP>
+
+```shell
+/usr/local/ssl/openssl.cnf
+```
+
+<AP>cp /usr/local/ssl/openssl.cnf ~/ssl</AP>
+
+Ouvrir le fichier openssl.cnf et modifier la variable _dir_ avec le dossier _ssl_ que l'on vient de créer:
+
+```
+dir             = /home/alex/ssl        # Where everything is kept
+```
+
+Créer également 2 fichiers :
+
+- _index.txt_ est le fichier d'index de la base de données des certificats.
+- _seial_ est le fichier qui contient le prochain numéro de série pour tout nouveau certificat qui sera créé. Il
+  sert à initialiser le compteur de certificats.
+
+<AP>echo '01' > serial</AP>
+
+<AP>touch index.txt </AP>
+
+## Création des certificats
+
+### Création du certificat de l'autorité de certification
+
+Il s'agit de créer une paire de clés privée / publique puis un certificat racine autosigné. Cette étape nous permettra d'obtenir :
+
+- Une clée privée protégée par un mot de passe : _cakey.pem_
+- Une demande de certificat valable 365 jours _cacert.pem_
+
+Il faudra impérativement fournir les éléments suivants
+
+| Nom du champ           | Descriptif                                       | Exemple             |
+| ---------------------- | ------------------------------------------------ | ------------------- |
+| PEM assphrase          | Mot de passe permétant de crypter la clé privée  | superPass           |
+| Country Name           | Les 2 lettresdu pays où a été créé le certificat | FR                  |
+| State of Province Name | Région ou département                            | 14                  |
+| City or Locality       | Ville                                            | Caen                |
+| Organization Name      | Nom exact de l'entreprise                        | superBoite          |
+| Organizational Unit    | Unité d'organisation                             | Service Technique   |
+| Common Name            | Nom Descriptif du certificat                     | CA superBoite       |
+| Email Address          | email de l'administrateur                        | admin@superboite.fr |
+
+Voici la commande permettant de créer tout ce qui a été défini au dessus, elle lance un script qui pose les questions concernant le certificat :
+
+<AP>
+  openssl req -new -x509 -extensions v3\_ca -keyout private/cakey.pem -out
+  cacert.pem -days 365 -config ./openssl.cnf
+</AP>
+
+Normalement, 2 fichiers viennent d'être créé :
+
+- Certificat : _./cacert.pem_
+- Clé privée : _private/cakey.pem_
+
+Le fichier _cacert.pem_ devrait être renseigné comme cela :
+
+```make
+-----BEGIN CERTIFICATE-----
+MIIEDzCCAvegAwIBAgIUP6ew4x2zZm/RAkB3Uqmi4p5t2lUwDQYJKoZIhvcNAQEL
+(...)
+U5YTUe95XL0sK2s6N6f45HR00hpcjEZ6Igx5EQcpJHyG5DM=
+-----END CERTIFICATE-----
+```
+
+Le fichier _cakey.pem_ devrait être renseigné comme cela :
+
+```make
+-----BEGIN ENCRYPTED PRIVATE KEY-----
+MIIFHDBOBgkqhkiG9w0BBQ0wQTApBgkqhkiG9w0BBQwwHAQIF5/30pdZuRgCAggA
+(...)
+M3zBFGlZqbZSDdYKVdHOnA==
+-----END ENCRYPTED PRIVATE KEY-----
+```
+
+### Extraction du certificat racine
+
+L’extraction consiste à afficher une sortie écran d’un certificat. On peut alors vérifier que le certificat est conforme aux attentes.
+
+<AP>openssl x509 -text -in cacert.pem</AP>
+
+```shell
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            3f:a7:b0:e3:1d:b3:66:6f:d1:02:40:77:52:a9:a2:e2:9e:6d:da:55
+        Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C = FR, ST = 14, L = Caen, O = superBoite, OU = Service Technique, CN = CA superBoite, emailAddress = admin@superboite.fr
+        Validity
+            Not Before: May  5 20:18:31 2021 GMT
+            Not After : May  3 20:18:31 2031 GMT
+        Subject: C = FR, ST = 14, L = Caen, O = superBoite, OU = Service Technique, CN = CA superBoite, emailAddress = admin@superboite.fr
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:9c:f2:a5:02:a1:67:0c:a3:bd:6f:2f:69:59:5d:
+                    (...)
+                    78:82:ec:16:02:ee:82:f4:ca:87:4e:2a:2a:25:41:
+                    53:5b
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier:
+                62:B9:3B:09:F5:FA:AA:D6:02:72:B4:24:29:2E:D8:0D:85:64:5C:8C
+            X509v3 Authority Key Identifier:
+                62:B9:3B:09:F5:FA:AA:D6:02:72:B4:24:29:2E:D8:0D:85:64:5C:8C
+            X509v3 Basic Constraints: critical
+                CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+    Signature Value:
+        02:47:6e:cc:9e:80:6a:c6:66:94:f8:ce:12:f4:dc:52:ea:99:
+        (...)
+        a7:f8:e4:74:74:d2:1a:5c:8c:46:7a:22:0c:79:11:07:29:24:
+        7c:86:e4:33
+-----BEGIN CERTIFICATE-----
+MIIEDzCCAvegAwIBAgIUP6ew4x2zZm/RAkB3Uqmi4p5t2lUwDQYJKoZIhvcNAQEL
+(...)
+U5YTUe95XL0sK2s6N6f45HR00hpcjEZ6Igx5EQcpJHyG5DM=
+-----END CERTIFICATE-----
+```
+
+On pense à archiver nos fichiers crées avec cette commande :
+
+<AP>tar -czf rootca.tar.gz private/cakey.pem cacert.pem</AP>
+
+## Création d'un certificat SSL pour un serveur web
+
+Un certificat SSL est utile afin de sécuriser les échanges entre un serveur Web et des clients potentiels. Ce certificat, installé sur un serveur Web, est transmis au client lorsqu’un échange sécurisé est demandé.
+Le certificat SSL, associé à une paire de clés publique/privée, permet au serveur d’échanger des données cryptées
+avec le navigateur du client. Il faut donc :
+
+- Créer une nouvelle paire de clé publique/privée _webkey.pem_
+- Créer une nouvelle demande de certificat pour le serveur qui contiendra la clé publique _newreq.pem_
+- Signer cette demande de certificat avec le certificat de l’autorité _cacert.pem_ et obtenir un nouveau
+  certificat _webcert.pem_
+
+### Création de la paire de clé et de la demande de certificat
+
+Les élements suivants doivent être fournis impérativement :
+
+| Nom du champ           | Descriptif                                                                   | Exemple             |
+| ---------------------- | ---------------------------------------------------------------------------- | ------------------- |
+| PEM assphrase          | Mot de passe permétant de crypter la clé privée                              | superPass           |
+| Country Name           | Les 2 lettresdu pays où a été créé le certificat                             | FR                  |
+| State of Province Name | Région ou département                                                        | 14                  |
+| City or Locality       | Ville                                                                        | Caen                |
+| Organization Name      | Nom exact de l'entreprise                                                    | superBoite          |
+| Organizational Unit    | Unité d'organisation                                                         | Service Technique   |
+| Common Name            | Nom Descriptif du certificat, doit représenter le nom DNS complet su serveur | CA superBoite       |
+| Email Address          | email de l'administrateur                                                    | admin@superboite.fr |
+
+Voici la commande :
+
+<AP>
+  openssl req -config ./openssl.cnf -new -keyout private/webkey.pem -out
+  certs/newreq.pem
+</AP>
+
+```shell
+Generating a RSA private key
+.......+......+....................+......+.........+....+..+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*......+.......+......+...+..+.........+.+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*...........+.....+............+....+..+...+....+.....+...+............+.+...........+...+..........+........+....+...+..+....+.........+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+..+...+.+...+...........+.+...+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*........+...+..+......+....+......+.....+.+...........+............+..........+...........+....+......+......+...+......+......+........+...+..........+...+.....+.+........+.+.....+....+........+.......+...+........+......+.+..+.......+...+..................+..+.+...........+.+..+.+.....+......+....+.........+...+............+..+.............+........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Writing new private key to 'private/webkey.pem'
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:FR
+State or Province Name (full name) [Some-State]:14
+Locality Name (eg, city) []:Caen
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:superBoite
+Organizational Unit Name (eg, section) []:Service Technique
+Common Name (e.g. server FQDN or YOUR name) []:web1
+Email Address []:admin@superboite.fr
+```
+
+Il faut vérifier que 2 fichiers nommés _webkey.pem_ et _newreq.pem_ ont bien été créés :
+
+- _private/webkey.pem_
+- _certs/newreq.pem_
+
+### Signature de la demande de certificat par l'autorité
+
+Il faut maintenant signer ce certificat afin qu’il puisse être déployé sur le serveur Web. Pour cela, la clé privée de
+l’autorité de certification sera nécessaire puisqu’elle est la seule à pouvoir créer la signature numérique.
+
+<AP>
+  openssl ca -config ./openssl.cnf -policy policy\_anything -out
+  private/webcert.pem -infiles certs/newreq.pem
+</AP>
+
+Si la commande a bien fonctionné, on devrait nous demander de confimer la création du certificat.
+
+```shell
+Using configuration from ./openssl.cnf
+Enter pass phrase for /home/alex/ssl/private/cakey.pem:
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number: 1 (0x1)
+        Validity
+            Not Before: May  5 22:01:39 2021 GMT
+            Not After : May  5 22:01:39 2022 GMT
+        Subject:
+            countryName               = FR
+            stateOrProvinceName       = 14
+            localityName              = Caen
+            organizationName          = boiteSuper
+            organizationalUnitName    = Service Technique
+            commonName                = boitesuper.sio
+            emailAddress              = admin@boitesuper.fr
+        X509v3 extensions:
+            X509v3 Basic Constraints:
+                CA:FALSE
+            X509v3 Subject Key Identifier:
+                26:A9:66:84:A5:2F:F7:AA:06:FB:F0:19:52:20:A2:0E:D1:6B:21:34
+            X509v3 Authority Key Identifier:
+                62:B9:3B:09:F5:FA:AA:D6:02:72:B4:24:29:2E:D8:0D:85:64:5C:8C
+Certificate is to be certified until May  5 22:01:39 2022 GMT (365 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Data Base Updated
+```
+
+### Vérification du chemin de certification
+
+L’objectif est de vérifier que la signature du certificat a bien été effectuée par notre autorité de certification. Cela
+prouve que le chemin de certification est correct. Pour cela, on utilise la commande _verify_ d’openssl :
+
+<AP>openssl verify --CAfile cacert.pem private/webcert.pem</AP>
+
+```shell
+private/webcert.pem: OK
+```
+
+## Installation du certificat SSL
+
+Les éléments nécessaires à Apache2 pour prendre en charge SSL sont les suivants :
+
+- Le certificat du serveur _webcert.pem_
+- La clé privée non cryptée du serveur
+
+**Remarque importante** : Le fait d’accéder à la clé privée du serveur pose un sérieux problème de sécurité. En effet, si quelqu’un s’empare de cette clé, il pourra décrypter tous les échanges entre le serveur et ses clients. Il est possible de maintenir un cryptage de la clé privée grâce à un mot de passe. Dans ce cas, dès que le serveur Apache2 démarre, il demandera le mot de passe. Dans ce TP, nous allons laisser la clé privée non-cryptée.
+
+### Décryptage de la clé privée su serveur web
+
+La commande suivante permet de générer un nouveau fichier contenant la clé privée non cryptée _webkey-clair.pem_.
+
+<AP>openssl rsa -in private/webkey.pem -out private/webkey-clair.pem</AP>
+
+```shell
+Enter pass phrase for private/webkey.pem:
+writing RSA key
+```
+
+### Copie des fichiers
+
+Il s'agit de copier les ficchiers que nous venons de créer dans les bons répertoires de manière à ce qu'Apache puis les utiliser :
+
+Si ce n'est pas déjà fait, il faut installer Apache2 :
+
+<AP>apt install -y apache2</AP>
+
+Puis créer un dossier dans le dossier d'Apache nommé _ssl_ à l'endroit duquel les fichiers seront copiés.
+
+<AP>mkdir /etc/apache2/ssl</AP>
+
+<AP>cp ~/ssl/private/webcert.pem /etc/apache2/ssl/</AP>
+<AP>cp ~/ssl/private/webkey-clair.pem /etc/apache2/ssl/</AP>
+
+### Configuration d’Apache
+
+Il faut d’abord configurer le serveur Web pour qu’il utilise SSL. Le module doit donc être activé avec la commande suivante :
+
+<AP>a2enmod ssl</AP>
+
+Nous devons créer un hôte virtuel _VirtualHost_ pour qu’Apache soit capable de répondre aux requêtes SSL https. Editer le fichier _/etc/apache2/sites-available/default-ssl_ pour modifier le chemin des certificats, changer les lignes suivantes avec les fichiers précédemments copiés :
+
+```
+SSLCertificateFile      /etc/apache2/ssl/webcert.pem
+SSLCertificateKeyFile   /etc/apache2/ssl/webkey-clair.pem
+```
+
+On active l'hôte virtuel et on recharge la configuration :
+
+<AP>a2ensite default-ssl && systemctl reload apache2</AP>
+
+### Test via le navigateur
+
+On ouvre avec le navigateur de notre choix et tape l'adresse suivante : *https://172.16.0.23* ou l'adresse du serveur que nous venons de configurer.
+
+![Votre connexion n'est pas privée !](./img/unprivate-connexion.png)
+
+Un message apparaît, **n’acceptez pas ce certificat** qui n’a pas été vérifié par une autorité de certification de confiance !
+
+### Ajout de notre autorité de certification dans le navigateur
+
+Afin d’éviter le message d’acceptation du certificat, il est possible de configurer le navigateur pour qu’il accepte tous les certificats venant de notre autorité de certification. Pour cela, il faut absolument copier le certificat racine (cacert.pem) sur le poste du client et l’importer dans la configuration du navigateur.
+
+Il reste un problème de résolution de noms DNS. En effet, la valeur du champ « Common Name » du certificat crée précédemment est « boitesuper.sio ». Si vous n’accédez pas au serveur web avec une URL basée sur le même nom, la plupart des navigateurs affichent un message d’avertissement. Ce problème pourra être résolu lorsque le nom de domaine du serveur sera configuré correctement.
+
+### Résolution du problème DNS
+
+Afin de résoudre ce problème sans pour autant modifier le système de résolution DNS, nous allons installer une résolution statique DNS par l’intermédiaire du fichier _/etc/hosts_. Ajouter la ligne suivante :
+
+```
+172.16.0.23 boitesuper.sio
+```
+
+Lancer de nouveau votre navigateur favori et rendez-vous sur la page d’accueil du serveur Web en utilisant le protocole https.

@@ -1,0 +1,354 @@
+---
+title: "Serveur DNS Bind9 sous Debian 10 Buster"
+date: 08 Oct 2020
+draft: false
+---
+
+## Documentations
+
+Licence open source - Bind9 v9.11.5 - [documentation](https://bind9.readthedocs.io/en/v9_16_4/)
+
+## Présentation
+
+Le DNS pour **Domain Name System** est un système qui permet d’effectuer des résolutions entre une adresse de type **http://www.google.fr** en une adresse du type **http://74.125.224.72** et inversement. Il est très utile car l'être humain a des difficultés à retenir les suites de chiffres comme les adresses IPv4 qui sont constituées d'une série de 4 nombres compris entre 0 et 255, et encore pire pour les adresses IPv6 qui comportent 8 séries de 4 charactères compris entre 0000 et FFFF. Il est plus facile de retenir des noms symboliques comme google.fr, surtout que derrière un nom de domaine, l'adresse IP peut varier avec le temps.
+
+Dans notre exemple, on mettra en place d’un serveur DNS primaire permettant la résolution de nom FQDN (Nom de domaine vers adresse IP) mais aussi la résolution inversée (adresse IP vers nom de domaine). On effectuera un enregistrement CNAME qui permettra de mettre un alias à nom de domaine. Par exemple, lorsque l’on rentre dans le navigateur http://monsite1.fr , je souhaite être rediriger vers http://tuto-bind9.fr .Enfin, on mettra en place un serveur DNS secondaire qui dupliquera les enregistrements du 1er DNS primaire, et qui prendra le relais au cas de défaillance du 1er.
+
+Pour ce faire, on utilisera BIND9 pour Berkley Internet Naming Daemon qui est le serveur DNS le plus utlisé au monde. On définira un domaine appelé _falaise.net_.
+
+#### Topologie :
+
+| Machine                       | OS          | Distribution  | Version | Rôle                   | Nom d'hôte | IP            |
+| ----------------------------- | ----------- | ------------- | ------- | ---------------------- | ---------- | ------------- |
+| Machine Virtuelle Virtual Box | GNU / Linux | Debian        | 10.5    | Serveur web            | web01      | 172.16.200.11 |
+| Machine Virtuelle Virtual Box | GNU / Linux | Debian        | 10.5    | Serveur DNS primaire   | dns01      | 172.16.200.1  |
+| Machine Virtuelle Virtual Box | GNU / Linux | Debian        | 10.5    | Serveur DNS secondaire | dns02      | 172.16.200.2  |
+| Dell Latitude 3500            | Windows     | 10 Entreprise | 1903    | Client web             | L019-163   | 172.16.1.65   |
+
+## Prérequis
+
+Vu que l'on va résoudre un nom FQDN en adresse IP, il va falloir bien nommer nos hôtes à commencer par le serveur DNS lui-même. Il va falloir éditer ce fichier _/etc/hosts_ :
+
+```make
+127.0.0.1 localhost
+127.0.1.1 dns01
+172.16.200.1 dns01.falaise.net
+
+# The following lines are desirable for IPv6 capable hosts
+::1 localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+```
+
+On change le nom d'hôte sans redémarrer avec ces commandes :
+
+<AP>hostnamectl set-hostname dns01</AP>
+
+<AP>invoke-rc.d hostname.sh start</AP>
+
+<AP>su</AP>
+
+On va mettre l'adresse IP du serveur en statique dans _/etc/network/interfaces_ :
+
+```make
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug enp0s3
+auto enp0s3
+iface enp0s3 inet static
+address 172.16.200.1/16
+gateway 172.16.0.1
+```
+
+Et dire à notre hôte dans quel domaine et vers quel serveur DNS il doit effectuer les résolutions, ceci devra être fait pour tous les hôtes dans le domaine _falaise.net_, ce fichier se trouve ici _/etc/resolv.conf_ :
+
+```make
+domain falaise.net
+search falaise.net
+nameserver 172.16.200.1
+nameserver 172.16.200.2
+nameserver 172.16.0.1
+```
+
+On indique dans ce fichier l'ordre dans lequel se fera les résolutions, la dernière adressse étant celle da la passerelle par défaut.
+
+## Installation du serveur DNS - Bind9
+
+<AP>apt get update</AP>
+
+<AP>apt install bind9</AP>
+
+Et quelques paquets utiles dont la documentation et la commande _dig_ qui effectue les résolutions :
+
+<AP>apt install bind9-doc && apt install dnsutils</AP>
+
+## Configuration de la zone DNS
+
+Nous allons configurer le serveur DNS primaire avec pour nom de domaine : _falaise.net_  
+Dans notre fichier de zone, il faudra créer 2 zones, une pour la résolution de domaine et l’autre pour la résolution inversée.  
+Les fichiers de configuration de zone de BIND9 se trouve ici dans _/etc/bind_, les zones se déclare dans ce fichier : _named.conf.local_
+
+```shell
+// Zone pour le domaine “falaise.net" :
+
+// Résolution directe :
+zone "falaise.net" IN {
+        type master;
+        file "db.falaise.net";
+        allow-update {none;};
+        allow-transfer {172.16.200.2;};
+        notify yes;
+};
+
+// Résolution inversée :
+zone "16.172.in-addr.arpa" IN {
+        type master;
+        file "rev.falaise.net";
+        allow-update {none;};
+        allow-transfer {172.16.200.2;};
+        notify yes;
+};
+```
+
+À noter que pour la résolution inversée, selon le masque utilisé, il faudra entrer uniquement les octets du réseau à l’envers. Dans cet exemple, c’est une adresse privée de classe B donc avec un masque à 16 bits donc _172.16.0.0_ qui devient _16.172_ suivi de _.in-addr.arpa_.
+
+Le champ files renvoient au dossier _/var/cache/bind/_ mais il est inutile de mettre le chemin en entier.
+
+Le champ `allow-update {none;};` spécifie qui sont les hôtes qui sont autorisés à soumettre des modifications dans le fichier de zone master, ici aucun hôte n’est autorisé à le faire. Avec _allow-transfer_, on autorise la réplication des enregistrements DNS vers le serveur secondaire ici le _dns02_ et _notify_ permet d'envoyer des notifications de changements à tous les enregistrements NS du domaine, ce sont donc les serveurs DNS.
+
+Une fois la configuration effectuée, on peut utiliser la commande suivante pour vérifier notre fichier de zone. Il renverra une erreur s’il en trouve une :
+
+<AP>named-checkconf /etc/bind/named.conf.local</AP>
+
+**Attention, s’il y a des erreurs sur les adresses IPs, il ne renverra rien !**
+
+## Configuration des enregistrements DNS
+
+Le fichier de zone étant déclaré, ce fichier renvoi vers 2 fichiers d'enregistrements dns, on va devoir spécifier les noms d'hôtes ainsi que leur adresse ip pour effectuer la résolution.
+
+Les enregistrements pour la résolution de nom s'effectue ici : _/var/cache/bind/db.falaise.net_.
+
+### Résolution directe
+
+<AP>nano db.falaise.net</AP>
+
+```
+$TTL 86400
+@               IN      SOA     dns01.falaise.net. root.falaise.net. (
+                2020100801 ; numéro de série
+                1w ; rafraîchissement
+                1d ; nouvel essai
+                4w ; expiration (quatre semaines)
+                1d ; minimum d'une journée
+)
+@               IN      NS      dns01.falaise.net.
+@               IN      NS      dns02.falaise.net.
+dns01           IN      A       172.16.200.1
+dns02           IN      A       172.16.200.2
+L019-163        IN      A       172.16.1.65
+web01           IN      A       172.16.200.11
+monsite         IN      CNAME   web01
+```
+
+En premier le _TTL_ pour **time to live**, définit en secondes la durée de validité de l'enregistrement. Avec 86400, le cache sera vidé, et les fichiers relus, toutes les 24 heures.
+
+le _@_ est une manière simplifiée de définir la zone, ici _falaise.net_.
+
+Ici, on définit que le serveur _dns01_ à l'autorité sur la résolution dns pour la zone _falaise.net_ avec l'enregistrement _SOA_. S'en suit :
+
+_Le numéro de série_ : il s'incrémente à chaque changement, permettant d’identifier la version du fichier de zone.  
+_Le rafraichissement_ : Intervalle précisant à quel moment un serveur secondaire doit interroger la version du serveur primaire.  
+_Le nouvel essai_ : Intervalle précisant à quel moment un serveur secondaire doit renouveler sa requête en cas d’échec.  
+_L'expiration_ : Intervalle précisant à quel moment les informations DNS ne doivent plus être délivrées en cas d’absence de réponse de la part du serveur primaire.  
+_Le minimum_ : Intervalle précisant combien de temps les informations peuvent être conservées dans le cache
+
+Puis viennent s'ajouter les enregistrements :
+
+Les enregistrements _NS_ pour Name Server permettent de définir quels sont les serveurs qui ont autorités sur le domaine., ici c'est _dns01_ et _dns02_.
+
+Les enregistrements _A_ effectuent des résolutions de type IPv4, c'est l'enregistrement le plus simple. Il permet de résoudre le nom directement vers l'adresse IP, tous les hôtes du domaine que l'on doit résoudre seront enregistrés.
+
+Les enregistrements _CNAME_ permettent de mettre des alias, si j'appelle la page *http://monsite.falaise.net*, je serai automatiquement redirigé vers *http://web1.falaise.net*.
+
+Le fichier pour la résolution direct étant terminé, on va procéder à la résolution inversée :
+
+### Résolution inversée
+
+<AP>nano rev.falaise.net</AP>
+
+```
+$TTL 86400
+@               IN      SOA     dns01.falaise.net. root.falaise.net. (
+        2020100801 ; numéro de série
+                1w ; rafraîchissement
+                1d ; nouvel essai
+                4w ; expiration (quatre semaines)
+                1d ; minimum d'une journée
+)
+@               IN      NS      dns01.falaise.net.
+@               IN      NS      dns02.falaise.net.
+1.200           IN      PTR     dns01.falaise.net.
+2.200           IN      PTR     dns02.falaise.net.
+65.1            IN      PTR     L019-163.falaise.net.
+11.200          IN      PTR     web01.falaise.net.
+```
+
+Ce qui change par rapport au fichier de résolution direct, ce sont les enregistrements de type _PTR_ qui sont les octets de la machine hôte mais écrit à l'envers, ici les 2 derniers octets avec un masque à 16 bits. Par exemple, l'enregistrement _11.200_ désigne l'adresse IP _172.16.200.11_.
+
+Une fois terminé, on peut vérifier nos fichiers avec les commandes suivantes :
+
+<AP>named-checkzone falaise.net db.falaise.net</AP>
+
+<AP>named-checkzone 16.172.in-addr.arpa rev.falaise.net</AP>
+
+Si tout va bien on devrait avoir quelque chose de ce style :
+
+```
+zone falaise.net/IN: loaded serial 2020100801
+OK
+```
+
+On redémarre Bind9
+
+<AP>systemctl restart bind9</AP>
+
+## Test de résolution
+
+On peut commencer à faire nos tests de résolution avec la commande _dig_. On va demander au serveur DNS, quelle est l'adresse IP de _dns01_, c'est à dire lui même.
+
+<AP>dig dns1.falaise.net</AP>
+
+```make
+; <<>> DiG 9.11.5-P4-5.1+deb10u2-Debian <<>> dns1.falaise.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46623
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 2, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+; COOKIE: 982c9fc1cdde40fe3577fd5b5f7f7d463711415ec6d7fe79 (good)
+;; QUESTION SECTION:
+;dns1.falaise.net. IN A
+
+;; ANSWER SECTION:
+*dns1.falaise.net. 300 IN A 62.210.16.62*
+
+;; AUTHORITY SECTION:
+falaise.net. 172800 IN NS ns0.online.net.
+falaise.net. 172800 IN NS ns1.online.net.
+
+;; ADDITIONAL SECTION:
+ns0.online.net. 172800 IN A 195.154.228.249
+ns1.online.net. 172800 IN A 62.210.16.9
+
+;; Query time: 276 msec
+;; SERVER: 172.16.200.1#53(172.16.200.1)
+;; WHEN: jeu. oct. 08 22:57:42 CEST 2020
+;; MSG SIZE rcvd: 164
+```
+
+Le serveur nous a bien répondu mais il nous fournit également des informations intéressantes comme le nombre de serveur DNS du domaine. Essayons la résolution inversée :
+
+<AP>dig -X 172.16.200.1</AP>
+
+```make
+; <<>> DiG 9.11.5-P4-5.1+deb10u2-Debian <<>> -x 172.16.200.1
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 33648
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 2, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+; COOKIE: 8d0274f03312635a8071a6ec5f7f81ccebaf0a392b8cb318 (good)
+;; QUESTION SECTION:
+;1.200.16.172.in-addr.arpa. IN PTR
+
+;; ANSWER SECTION:
+1.200.16.172.in-addr.arpa. 86400 IN PTR dns01.falaise.net.
+
+;; AUTHORITY SECTION:
+16.172.in-addr.arpa. 86400 IN NS dns02.falaise.net.
+16.172.in-addr.arpa. 86400 IN NS dns01.falaise.net.
+
+;; ADDITIONAL SECTION:
+dns01.falaise.net. 86400 IN A 172.16.200.1
+dns02.falaise.net. 86400 IN A 172.16.200.2
+
+;; Query time: 0 msec
+;; SERVER: 172.16.200.1#53(172.16.200.1)
+;; WHEN: jeu. oct. 08 23:17:00 CEST 2020
+;; MSG SIZE rcvd: 179
+```
+
+## Configuration d'un serveur DNS secondaire
+
+Nous allons configurer un serveur DNS secondaire qui prendra la relève si jamais notre serveur DNS primaire est inaccessible. Il faut reprendre ce tutoriel depuis la [Prérequis](#prérequis) en changeant le nom d'hôte par _dns02_ et avec l'adresse IP _172.16.200.2_. Le principal changement viendra du fichier de zone _/etc/bind/named.conf.local_ que l'on modifiera comme suit :
+
+```
+// Zone pour le domaine “falaise.net" :
+
+// Résolution directe :
+zone "falaise.net" IN {
+        type slave;
+        file "db.falaise.net";
+        masters {172.16.200.1;};
+};
+
+// Résolution inversée :
+zone "16.172.in-addr.arpa" IN {
+        type slave;
+        file "rev.falaise.net";
+        masters {172.16.200.1;};
+};
+```
+
+Evidemment le type du serveur est _slave_, et il faut pointer vers le serveur principal avec l'option _masters_ en indiquant l'adresse IP de celui-ci.
+
+Pour tester celui-ci, il faut arrêter le service DNS sur _dns01_, avec la commande :
+
+<AP>systemctl stop bind9</AP>
+
+Puis on interroge avec la commande dig, et on regarde si le serveur _dns02_ a pris le relais.
+
+<AP>dig dns01.falaise.net</AP>
+
+```make
+; <<>> DiG 9.11.5-P4-5.1+deb10u2-Debian <<>> dns01.falaise.net
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 56644
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 2, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+; COOKIE: 3b24b5989ccc873277479bf75f80986b8a24cefe47a3cc91 (good)
+;; QUESTION SECTION:
+;dns01.falaise.net. IN A
+
+;; ANSWER SECTION:
+dns01.falaise.net. 86400 IN A 172.16.200.1
+
+;; AUTHORITY SECTION:
+falaise.net. 86400 IN NS dns01.falaise.net.
+falaise.net. 86400 IN NS dns02.falaise.net.
+
+;; ADDITIONAL SECTION:
+dns02.falaise.net. 86400 IN A 172.16.200.2
+
+;; Query time: 1 msec
+;; SERVER: 172.16.200.2#53(172.16.200.2)
+;; WHEN: ven. oct. 09 19:05:47 CEST 2020
+;; MSG SIZE rcvd: 140
+```
+
+C'est bien le serveur _dns02_ qui nous a répondu !

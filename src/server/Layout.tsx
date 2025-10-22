@@ -1,43 +1,52 @@
 import type { PropsWithChildren } from "@kitajs/html";
-import { Link } from "@/server/components/Link";
 import { tags } from "client:script";
+import { Header } from "./components/Header";
 
 export const Layout = ({
   children,
   title,
   disableSEO,
-}: PropsWithChildren<{ title?: string; disableSEO?: boolean }>) => (
-  <>
-    {`<!doctype html>`}
-    <html lang="fr">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        {disableSEO && <meta name="robots" content="noindex, nofollow" />}
-        <title>
-          Alexandre Dos Reis | Portfolio & Blog{title && `| ${title}`}
-        </title>
-        {tags}
-      </head>
-      <body>
-        <nav>
-          <ul>
-            <li>
-              <Link href="/">Accueil</Link>
-            </li>
-            <li>
-              <Link href="/blog">Blog</Link>
-            </li>
-            <li>
-              <Link href="/parcours">Parcours</Link>
-            </li>
-            <li>
-              <a href="mailto:ajm.dosreis.daponte@gmail.com">Contact</a>
-            </li>
-          </ul>
-        </nav>
-        <main id="main">{children}</main>
-      </body>
-    </html>
-  </>
-);
+  isFragment,
+}: PropsWithChildren<{
+  isFragment: boolean;
+  title?: string;
+  disableSEO?: boolean;
+}>) => {
+  const headTitle = (
+    <title>Alexandre Dos Reis | Portfolio & Blog{title && ` | ${title}`}</title>
+  );
+
+  if (isFragment) {
+    return (
+      <>
+        <head>{headTitle}</head>
+        {children}
+      </>
+    );
+  }
+
+  return (
+    <>
+      {`<!doctype html>`}
+      <html lang="fr">
+        <head>
+          <meta charset="UTF-8" />
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+          {disableSEO && <meta name="robots" content="noindex, nofollow" />}
+          {headTitle}
+          {tags}
+          <link rel="stylesheet" href="/client/styles.css" />
+        </head>
+        <body>
+          <Header />
+          <main class="max-w-3xl mx-auto px-8 mt-16" id="main">
+            {children}
+          </main>
+        </body>
+      </html>
+    </>
+  );
+};

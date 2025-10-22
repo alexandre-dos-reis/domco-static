@@ -1,0 +1,342 @@
+---
+title: "Gestion d'un parc de serveurs avec Ansible"
+date: "26 Apr 2021"
+draft: false
+---
+
+## Dépendances
+
+- Python 3.9
+- Ansible Version 2.9
+
+## Présentation
+
+Ansible est une plate-forme logicielle libre pour la configuration et la gestion des ordinateurs. Elle combine le déploiement de logiciels en multi-nœuds, l'exécution des tâches ad-hoc, et la gestion de configuration. Elle gère les différents nœuds à travers SSH et ne nécessite l'installation d'aucun logiciel supplémentaire sur ceux-ci. Les modules communiquent via la sortie standard en notation JSON et peuvent être écrits dans n'importe quel langage de programmation. Le système utilise YAML pour exprimer des descriptions réutilisables de systèmes, appelées playbook.
+
+## Mise en situation
+
+| Machine        | OS          | Distribution | Version | Rôle            | Nom d'hôte | IP           |
+| -------------- | ----------- | ------------ | ------- | --------------- | ---------- | ------------ |
+| VM Virtual Box | GNU / Linux | Debian       | 10.9    | Serveur MariaDB | bdd1       | 172.16.0.1.1 |
+| VM Virtual Box | GNU / Linux | Debian       | 10.9    | Serveur Web     | web1       | 172.16.0.111 |
+| VM Virtual Box | GNU / Linux | Debian       | 10.9    | Serveur Web     | web2       | 172.16.0.112 |
+| VM Virtual Box | GNU / Linux | Debian       | 10.9    | Ansible Master  | ansible    | 172.16.0.121 |
+
+### Mise en place de l'infrastructure
+
+Comme nous n'avons pas de DNS, le fichiers _hosts_ sera utilisé pour indiquer les différentes adresses et leur résolution sur le serveur Ansible. Voilà le contenu du fichier _/etc/hosts_ :
+
+```make
+127.0.0.1       localhost
+127.0.1.1       ansible
+
+# Ansible's hosts
+172.16.0.111    web1
+172.16.0.112    web2
+172.16.0.121    bdd1
+
+
+# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+```
+
+## Installation
+
+### Sur la machine de contrôle
+
+Installer via pip, le gestionnaire de paquet pour Python pour obrenir la dernière version.
+
+<AP>sudo apt install python3-pip -y</AP>
+
+Puis on installe ansible globalement sur tout le système avec sudo :
+
+<AP>sudo pip3 install ansible</AP>
+
+### Sur les distantes
+
+Installer Python3
+
+## Configuration
+
+### Clés SSH
+
+Création de paire de clés SSH pour Ansible et copie vers les serveurs :
+
+<AP>ssh-keygen -t ed25519 -C "ansible"</AP>
+
+<AP>ssh-copy-id -i ansible.pub web1</AP>
+<AP>ssh-copy-id -i ansible.pub web2</AP>
+<AP>ssh-copy-id -i ansible.pub bdd1</AP>
+
+Donc on test que notre clé privée est bien acceptée par le serveur :
+
+<AP>ssh -i ~/.ssh/ansible alex@web1</AP>
+
+Le serveur nous demande la phrase de passe mais Pour éviter de devoir la passer à chaque connexion d'ansible en ssh aux serveurs, on va utiliser le ssh agent pour s'occuper de notre clé privée.
+
+On vérifie qu'un agent ssh est démarré avec :
+
+<AP>ssh-add -l</AP>
+
+```
+Could not open a connection to your authenticiton agent.
+```
+
+Pour lancer un agent :
+
+<AP>eval `ssh-agent`</AP>
+
+```
+Agent pid 11709
+```
+
+<AP>ssh-add -l</AP>
+``` The agent has no identities. ```
+
+L'agent est bien démarré mais il n'a pas de clé privée, on l'y ajoute :
+
+<AP>ssh-add ~/.ssh/ansible</AP>
+
+```
+Identity added: /home/alex/.ssh/ansible (Ansible)
+```
+
+On vérifier une dernière fois que l'agent a bien chargé la clé :
+
+<AP>ssh-add -l</AP>
+
+```
+256 SHA256:jV1HjJFTlvZ+fdCLriyevh4ruwk3xi4jAPV+9Q8NZDA Ansible (ED25519)
+```
+
+Sur le serveur qui seront administrer par Ansible, on peut spécifier à SSHD que l'on ne veut pas de mot de passe pour les connexionx SSH, en modifiant la ligne suivante :
+
+```
+PasswordAuthentication no
+```
+
+Le but de cette manoeuvre est d'arriver à se connecter en SSH sans entrer de mot de passe ce qui va grandement nous faciliter la vie par la suite.
+
+### L'inventaire
+
+Pour partir de zéro avec la configuration d'Ansible, on va créer un dossier _ansible_ dans le home de l'utilisateur courant.
+
+On doit fournir à Ansible un fichier qui détaille notre infrastructure, pour commencer à automatiser, pour cela on définit un inventaire dans le fichier nommé _hosts_ comme ceci :
+
+```make
+web1
+web2
+bdd1
+```
+
+### 1er test
+
+<AP>ansible all --key-file ~/.ssh/ansible -i hosts -m ping</AP>
+
+`-m` pour module
+
+Le module ping n'effectue pas vraiment un ping mais se connecte via ssh à tous les serveurs présents dans le fichier infrastructure.
+
+Voilà le résultat attendu :
+
+```make
+web1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+web2 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+
+bdd1 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+```
+
+### Création du fichier ansible.cfg
+
+Pour une question de clarté, il est plus profitable de créer un fichier de configuration ansible pour ne pas à avoir à réécrire toute cette commande.
+
+Dans le home on crée un dossier nommé _ansible_ et un fichier nommé _ansible.cfg_. Voici son contenu :
+
+```make
+[defaults]
+inventory = hosts
+private_key_file = ~/.ssh/ansible
+```
+
+On peut alors raccourci notre commande de test précédente, mais il faut la lancer dans le dossier où est présent ce fichier avec :
+
+<AP>ansible all -m ping</AP>
+
+On obtient le même résultat que précédemment
+
+Voici quelques commandes de bases utiles :
+
+<AP>ansible all --list-hosts</AP>
+
+<AP>ansible all -m gather_facts</AP>
+
+C'est très verbeux mais cela permet de récupérer un log avec toutes les informations concernant les serveurs.
+
+Pour cibler un hôte :
+
+<AP>ansible all -m gather_facts --limit web1</AP>
+
+Utile pour débugger !
+
+De manière générale, on va plutôt essayer de raccourcir les commandes entrées dans la cli par l'emploi de fichier de configuration.
+
+## Commandes ad-hoc
+
+Voilà une première commande qui va changer quelque chose sur nos serveurs. Le problème est qu'ansible ne dispose pas d'un compte sudo pour effectuer des commandes qui vont changer drastiquement les serveurs ciblés.
+
+Cette commande devrait échouer :
+
+ansible all -m apt -a update_cache=true
+
+Il faut donc la changer pour :
+ansible all -m apt -a update*cache=true --become --ask-become-pass --become-method=su
+--become : utilise le compte root pour toutes les machines
+--ask-become-pass : Demande l'utilisation d'un mot de passe
+--become-method : Méthode d'authentification ici \_su*
+
+Voici la même commande en plus court :
+
+ansible all -m apt -a update_cache=true -b -K --become-method=su
+
+Voici la commande pour installer sudo sur tous nos serveurs :
+
+ansible all -m apt -a name=sudo -b -K --become-method=su
+
+-m spécifie le module à utiliser spécifique à ansible, ici apt
+-a spécifie un argument pour le module, ici name=sudo
+
+voilà la réponse :
+
+```make
+web1 | CHANGED => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python"
+    },
+    "cache_update_time": 1620425204,
+    "cache_updated": false,
+    "changed": true,
+    "stderr": "",
+    "stderr_lines": [],
+    "stdout": "Reading package lists...\nBuilding dependency tree...\nReading state information...\nThe following NEW packages will be installed:\n  sudo\n0 upgraded, 1 newly installed, 0 to remove and 65 not upgraded.\nNeed to get 1244 kB of archives.\nAfter this operation, 3882 kB of additional disk space will be used.\nGet:1 http://deb.debian.org/debian buster/main amd64 sudo amd64 1.8.27-1+deb10u3 [1244 kB]\nFetched 1244 kB in 2s (685 kB/s)\nSelecting previously unselected package sudo.\r\n(Reading database ... \r(Reading database ... 5%\r(Reading database ... 10%\r(Reading database ... 15%\r(Reading database ... 20%\r(Reading database ... 25%\r(Reading database ... 30%\r(Reading database ... 35%\r(Reading database ... 40%\r(Reading database ... 45%\r(Reading database ... 50%\r(Reading database ... 55%\r(Reading database ... 60%\r(Reading database ... 65%\r(Reading database ... 70%\r(Reading database ... 75%\r(Reading database ... 80%\r(Reading database ... 85%\r(Reading database ... 90%\r(Reading database ... 95%\r(Reading database ... 100%\r(Reading database ... 28864 files and directories currently installed.)\r\nPreparing to unpack .../sudo_1.8.27-1+deb10u3_amd64.deb ...\r\nUnpacking sudo (1.8.27-1+deb10u3) ...\r\nSetting up sudo (1.8.27-1+deb10u3) ...\r\nProcessing triggers for man-db (2.8.5-2) ...\r\nProcessing triggers for systemd (241-7~deb10u4) ...\r\n",
+    "stdout_lines": [
+        "Reading package lists...",
+        "Building dependency tree...",
+        "Reading state information...",
+        "The following NEW packages will be installed:",
+        "  sudo",
+        "0 upgraded, 1 newly installed, 0 to remove and 65 not upgraded.",
+        "Need to get 1244 kB of archives.",
+        "After this operation, 3882 kB of additional disk space will be used.",
+        "Get:1 http://deb.debian.org/debian buster/main amd64 sudo amd64 1.8.27-1+deb10u3 [1244 kB]",
+        "Fetched 1244 kB in 2s (685 kB/s)",
+        "Selecting previously unselected package sudo.",
+        "(Reading database ... ",
+        "(Reading database ... 5%",
+        "(Reading database ... 10%",
+        "(Reading database ... 15%",
+        "(Reading database ... 20%",
+        "(Reading database ... 25%",
+        "(Reading database ... 30%",
+        "(Reading database ... 35%",
+        "(Reading database ... 40%",
+        "(Reading database ... 45%",
+        "(Reading database ... 50%",
+        "(Reading database ... 55%",
+        "(Reading database ... 60%",
+        "(Reading database ... 65%",
+        "(Reading database ... 70%",
+        "(Reading database ... 75%",
+        "(Reading database ... 80%",
+        "(Reading database ... 85%",
+        "(Reading database ... 90%",
+        "(Reading database ... 95%",
+        "(Reading database ... 100%",
+        "(Reading database ... 28864 files and directories currently installed.)",
+        "Preparing to unpack .../sudo_1.8.27-1+deb10u3_amd64.deb ...",
+        "Unpacking sudo (1.8.27-1+deb10u3) ...",
+        "Setting up sudo (1.8.27-1+deb10u3) ...",
+        "Processing triggers for man-db (2.8.5-2) ...",
+        "Processing triggers for systemd (241-7~deb10u4) ..."
+    ]
+}
+```
+
+On va mettre à jour le paquet python3.7 sur tous nos serveurs avec une commande Ansible :
+
+ansible all -m apt -a "name=python3.7 state=latest" -b -K --become-method=su
+
+Pour mettre à jour tous les paquets disponibles :
+
+ansible all -m apt -a "upgrade=dist" -b -K --become-method=su
+
+## Playbook
+
+Tout l'intérêt de Ansible se situe dans les playbooks, il s'agit de renseigner l'état complet d'un serveur ou groupe de serveur dans un fichier au format _yaml_, fichier qui pourra bien sûr être traqué par Git.
+
+### Création d'un playbook
+
+Nous allons créer un playbook pour installer Apache2 sur nos 2 serveurs :
+
+```yaml
+---
+- hosts: webServers
+
+  tasks:
+    - name: Installer Apache2
+      apt:
+        name: apache2
+
+    - name: Démarrer Apache2
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+```
+
+### Execution d'un playbook
+
+ansible-playbook -b -K --become-method=su playbooks/webServers.yml
+
+Voilà la sortie de cette commande :
+
+```make
+PLAY [webServers] ********************************************************************************************************************
+
+TASK [Gathering Facts] ***************************************************************************************************************
+ok: [web2]
+ok: [web1]
+
+TASK [Installer Apache2] *************************************************************************************************************
+[WARNING]: Updating cache and auto-installing missing dependency: python-apt
+changed: [web1]
+changed: [web2]
+
+TASK [Démarrer Apache2] **************************************************************************************************************
+ok: [web2]
+ok: [web1]
+
+PLAY RECAP ***************************************************************************************************************************
+web1                       : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+web2                       : ok=3    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+```

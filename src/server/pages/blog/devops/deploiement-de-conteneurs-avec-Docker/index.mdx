@@ -1,0 +1,531 @@
+---
+title: "Déploiement de conteneurs avec Docker"
+date: "23 Mar 2021"
+draft: false
+---
+
+## Documentations et versions
+
+Docker version 20.10.6, build 370c289
+
+[Documentation](https://docs.docker.com/) - [Docker Hub](https://hub.docker.com/)
+
+## Présentation
+
+### Introduction
+
+Docker est un logiciel libre permettant de lancer des applications dans des conteneurs logiciels.
+
+Selon la firme de recherche sur l'industrie 451 Research, « Docker est un outil qui peut empaqueter une application et ses dépendances dans un conteneur isolé, qui pourra être exécuté sur n'importe quel serveur ». Il ne s'agit pas de virtualisation, mais de conteneurisation, une forme plus légère qui s'appuie sur certaines parties de la machine hôte pour son fonctionnement. Cette approche permet d'accroître la flexibilité et la portabilité d’exécution d'une application, laquelle va pouvoir tourner de façon fiable et prévisible sur une grande variété de machines hôtes, que ce soit sur la machine locale, un cloud privé ou public, une machine nue, etc.
+
+Techniquement, Docker étend le format de conteneur Linux standard, LXC, avec une API de haut niveau fournissant une solution pratique de virtualisation qui exécute les processus de façon isolée. Pour arriver à ses fins, Docker utilise entre autres LXC, cgroups et le noyau Linux lui-même. Contrairement aux machines virtuelles traditionnelles, un conteneur Docker n'inclut pas de système d'exploitation, mais s'appuie au contraire sur les fonctionnalités du système d’exploitation fournies par la machine hôte.
+
+La technologie de conteneur de Docker peut être utilisée pour étendre des systèmes distribués de façon qu'ils s'exécutent de manière autonome depuis une seule machine physique ou une seule instance par nœud. Cela permet aux nœuds d'être déployés au fur et à mesure que les ressources sont disponibles, offrant un déploiement transparent et similaire aux PaaS pour des systèmes comme Apache Cassandra, Riak ou d'autres systèmes distribués.
+
+### Mise en situation
+
+| Machine             | OS            | Distribution | Version | Rôle           | Nom d'hôte | IP & port         |
+| ------------------- | ------------- | ------------ | ------- | -------------- | ---------- | ----------------- |
+| Machine PVE Proxmox | GNU / Linux   | Debian       | 10.8    | Grappe Proxmox | ns3121671  | 192.168.1.254     |
+| VM Docker           | GNU / Linux   | Debian       | 10.8    | Serveur Docker | docker     | 192.168.1.2       |
+| Conteneur Docker    | GNU / Linux   | Debian       | 10.8    | App MRBS1      | web1       | 192.168.1.2:10010 |
+| Conteneur Docker    | GNU / Linux   | Debian       | 10.8    | App MRBS2      | web2       | 192.168.1.2:10011 |
+| Conteneur Docker    | GNU / Linux   | Debian       | 10.8    | App MRBS3      | web3       | 192.168.1.2:10012 |
+| Conteneur Docker    | image MariaDB | /            | 10.8    | Bdd MRBS3      | db         | /                 |
+
+Voici la description de l'infrastructure, un serveur Proxmox est accessible depuis une adresse IP publique, 3 ports ont été ouverts sur ce serveur : *10010*, *10011*, *10012*. Grâce à iptables, il y a une redirection des paquets joignants ces ports vers les mêmes ports sur l'IP privée *192.168.1.2*, machine où sera installée Docker.
+
+Les commandes pour ouvrir ces ports sur iptables sont :
+
+<AP>iptables -t nat -A PREROUTING -j DNAT -i vmbr0 -p tcp --dport 10010--to-destination 192.168.1.2:10010</AP>
+<AP>iptables -t nat -A PREROUTING -j DNAT -i vmbr0 -p tcp --dport 10011--to-destination 192.168.1.2:10011</AP>
+<AP>iptables -t nat -A PREROUTING -j DNAT -i vmbr0 -p tcp --dport 10012--to-destination 192.168.1.2:10012</AP>
+
+
+Nous aurons donc 3 applications dans 4 conteneurs :
+
+- Un conteneur avec Apache2, PHP 7.3 et mariaDB.
+- Un conteneur avec Apache2, PHP 8.0 et mariaDB.
+- Un conteneur avec Apache2 et PHP 7.3 qui communiquera vers un 4ème conteneur avec MariaDB. Ce dernier conteneur ne devra pas être joignable depuis l'extérieur.
+
+L'application choisie est [MRBS](https://mrbs.sourceforge.io/), une application de réservation de salle. Voici le contenu du dossier */home/alex/docker* sur le serveur Docker :
+
+```make
+-rw-r--r-- 1 alex alex  800 avril 28 11:12 1-mrbs-lamp-php7.3.Dockerfile
+-rw-r--r-- 1 alex alex 1109 avril 27 10:11 2-mrbs-lamp-php8.0.Dockerfile
+-rw-r--r-- 1 alex alex  333 avril 28 11:11 3-mariaDB.Dockerfile
+-rw-r--r-- 1 alex alex  227 avril 28 14:16 3-php7.3.Dockerfile
+-rw-r--r-- 1 alex alex  594 avril 28 14:16 docker-compose.yml
+drwxr-xr-x 3 alex alex 4096 avril 27 01:42 mrbs-1+2
+drwxr-xr-x 3 alex alex 4096 avril 28 11:40 mrbs-3
+```
+
+Des tests seront effectuées avec la commande *docker*, puis on effectuera les déploiements des 2 premiers serveurs avec *Dockerfile*, puis le 3ème déploiement s'effectuera avec *Docker-Compose*.
+
+## Installation de Docker
+
+### Plusieurs méthodes d'installation
+
+L'installation de docker peut se faire de plusieurs manières depuis le site officiel disponible [ici](https://docs.docker.com/engine/install/debian/).
+
+Selon le site officiel, la méthode recommandée est effectuée en ajoutant le dépôt distant docker et en téléchargeant l'application depuis ce dépôt. Pour un environnement de développement ou de test, on choisi la méthode par script.
+
+Donc pour une installation rapide, on peut faire :
+
+<AP>curl -fsSL https://get.docker.com -o get-docker.sh</AP>
+
+<AP>sudo sh get-docker.sh</AP>
+
+### Test de fonctionnement
+
+Pour tester que Docker tourne bien, on peut faire :
+
+<AP>sudo docker -v</AP>
+
+```make
+Docker version 20.10.6, build 370c289
+```
+
+Une fois ceci fait, on peut fait tourner un container de test :
+
+<AP>sudo docker run hello-world</AP>
+
+On devrait obtenir ce message :
+
+```make
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+b8dfde127a29: Pull complete
+Digest: sha256:f2266cbfc127c960fd30e76b7c792dc23b588c0db76233517e1891a4e357d519
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+```
+
+## Les commandes de bases
+
+### 1er démarrage de conteneur
+
+Dans l'environnement Docker, les conteneurs sont lancés à partir d'images. Ces dernières sont disponible sur le [docker hub ](https://hub.docker.com/) en téléchargement libre.
+
+Pour lancer un conteneur, il suffit d'utiliser la commande *run* suivi du nom de l'image. Si l'image est inexistante sur la machine, Docker utilisera implicitement la commande *docker pull &lt;Nom de l'image&gt;* pour télécharger l'image depuis le dépôt officiel.
+
+Essayons de lancer un conteneur Debian avec la commande suivante :
+
+<AP>sudo docker run debian</AP>
+
+On obtient :
+
+```make
+Unable to find image 'debian:latest' locally
+latest: Pulling from library/debian
+bd8f6a7501cc: Pull complete
+Digest: sha256:ba4a437377a0c450ac9bb634c3754a17b1f814ce6fa3157c0dc9eef431b29d1f
+Status: Downloaded newer image for debian:latest
+```
+
+On remarque que l'image n'a pas été trouvée par Docker qui l'a donc téléchargée depuis le dépôt officiel. On voit aussi que chaque image possède un tag comme ceci *image:tag*
+
+Par exemple, l'image php peut avoir plusieurs tags comme : 
+
+*php:7.3-fpm-alpine3.13*
+
+*php:7.4.16-apache*
+
+*php:8.0*
+
+Pour voir les images téléchargés sur le système, on peut utiliser la commande :
+
+<AP>sudo docker image ls</AP>
+
+```make
+REPOSITORY   TAG          IMAGE ID       CREATED       SIZE
+debian       latest       0d587dfbc4f4   2 weeks ago   114MB
+```
+
+Docker affiche ici les images stockées en local sur notre machine.
+
+Mais revenons au conteneur que nous avons lancé un peu plus haut, pour afficher les conteneurs démarrés, on fait :
+
+<AP>sudo docker container ls</AP>
+
+```make
+CONTAINER ID   IMAGE COMMAND CREATED STATUS PORTS NAMES
+```
+
+Bizarre, la liste est vide. Que s'est-il passé ? Docker a démarré un conteneur avec l'image *debian:latest* mais comme aucun processus n'a été démarré le conteneur s'est terminé brutalement.
+
+Voyons avec la commande suivante l'affichage de tous les conteneurs démarrés comme arrêtés :
+
+<AP>sudo docker container ls -a</AP>
+
+```make
+CONTAINER ID   IMAGE     COMMAND     CREATED       STATUS                   PORTS     NAMES
+9b84776b5ebc   debian    "bash"      2 hours ago   Exited (0) 2 hours ago             angry_shaw
+```
+
+Notre conteneur apparait donc bien, il a quitté. Son status est *Exited*
+
+### Mode détaché
+
+Nous venons de voir que pour qu'un conteneur ne quitte pas, il faut donc qu'il ait un processus en attente. Plusieurs solutions s'offre à nous mais une des plus simples consiste à exécuter une commande au lancement du conteneur avec *tail -f*. On fait donc :
+
+<AP>sudo docker run -d debian tail -f</AP>
+
+On ajoute l'option *-d* pour lancer le conteneur en mode détaché, c'est à dire que le conteneur tournera en tâche de fond, il est impératif d'ajouter l'option détaché avec l'ajout d'une commande sous peine d'être bloqué dans notre terminal. On vérifie que le conteneur tourne :
+
+<AP>sudo docker container ls</AP>
+
+Ou avec l'ancienne commande historique :
+
+<AP>sudo docker ps</AP>
+
+```make
+CONTAINER ID  IMAGE   COMMAND    CREATED             STATUS             PORTS    NAMES
+0adc35b3af7a  debian  "tail -f"  About a minute ago  Up About a minute           heuristic_shannon
+```
+
+Notre conteneur est donc bien démarré avec la commande *tail -f*, docker lui a donné un nom ce qui bien pratique pour éviter d'avoir à retenir l'id du conteneur.
+
+A partir de là, on peut :
+
+<AP a="Stopper $">sudo docker stop nomDuConteneur></AP>
+<AP a="Relancer $">sudo docker restart nomDuConteneur</AP>
+<AP a="Voir les logs $">sudo docker logs nomDuConteneur</AP>
+
+ou si on ne sait que faire :
+
+<AP>sudo docker --help</AP>
+
+### Mode interactif
+
+On peut désormais lancer nos conteneurs et les faire tourner en tâche de fond mais pour l'instant on n'a pas vraiment interagit avec. Pour ce faire, on va lancer ces commandes :
+
+<AP>sudo docker run -it imageDocker bash</AP>
+
+Ou si le conteneur est déjà en route :
+
+<AP>sudo docker exec -it idOuNomDuConteneur bash</AP>
+
+L'option *i* veut dire *interactif* et *t* veut dire *terminal*, donc on souhaite lancer un conteneur en mode interactif en mode terminal mais il faut encore indiquer le processus à lancer donc ici *bash*. On devrait se retrouver avec ça :
+
+```make
+root@0adc35b3af7a:/#
+```
+
+Maintenant que nous sommes dans notre conteneur, on peut faire tout ce que l'on veut sans risque de compromettre l'ordinateur hôte sur lequel est installé Docker, c'est le principe même d'un conteneur. Il y tout de même quelques différences entre une vraie machine Debian et un conteneur Debian, voici quelques unes d'entre elles :
+
+*apt install* devient *apt-get install*
+
+*systemctl start apache2* devient *service apache2 start*
+
+### Les volumes
+
+On voudrait partager un volume entre notre ordinateur hôte et un conteneur , pour ce faire on utilise l'option *-v* comme ceci :
+
+<AP>sudo docker run -d --name web -p 8080:80 -v ~/web:/usr/local/apache2/htdocs</AP>
+
+Cette commande vient de la [documentation Docker concernant apache2](https://hub.docker.com/_/httpd), on a spécifié l'option *--name* pour ajouter un nom à notre conteneur, on a relié le port *8080* de notre machine hôte au port *80* du conteneur Apache2 et on a monté le répertoire *~/web* de l'ordinateur hôte vers le dossier d'apache2 pour servir notre application.
+
+### Les réseaux
+
+On peut créer différents réseaux dans Docker et y placer nos différents conteneurs. On affiche la liste des réseaux avec :
+
+<AP>sudo docker network ls</AP>
+
+```make
+NETWORK ID     NAME             DRIVER    SCOPE
+39e84070fd93   bridge           bridge    local
+a46e544f52dd   host             host      local
+7b77007a09ea   none             null      local
+```
+
+*bridge* désigne le réseau par défaut utilisé par Docker pour faire tourner les conteneurs. *host* est le réseau physique de notre machine hôte, donc on pourrait monter un conteneur sans avoir à mapper le port avec l'option *-p* avec ce réseau host.
+
+On crée un réseau avec la commande :
+
+<AP>sudo docker network create nomDuReseau</AP>
+
+On ajoute un conteneur dans le réseau créé avec :
+
+<AP>sudo docker network connect nomDuReseau nomDuConteneur</AP>
+
+Le nom donné au conteneur agit comme un nom "dns" et peut être utilisé afin de contacter le conteneur, par exemple créons 2 conteneurs :
+
+<AP>docker run -d --name web1  -p 8001:80 php:7.3-apache</AP>
+<AP>docker run -d --name web2  -p 8002:80 php:7.3-apache</AP>
+
+On crée un réseau dans lequel serons placé nos serveurs :
+
+<AP>docker network create myNetwork</AP>
+<AP>docker network connect myNetwork web1</AP>
+<AP>docker network connect myNetwork web2</AP>
+
+Puis on utilise web1 pour joindre web2 :
+
+<AP>docker exec -ti web1 ping web2</AP>
+
+## dockerfile
+
+### Introduction
+
+Après avoir vu les commandes de bases, il devient évident qu'il est fastidieux de déployer un serveur de la sorte, raison pour laquelle on va utiliser Dockerfile. On va décrire la configuration dans un fichier nommé *monFichierDeConfig.Dockerfile*, puis ce fichier nous servira à construire une image que l'on lancera avec la commande *docker build*.
+
+Avec quelques commandes de bases, on décrit les étapes à effectuer, voici un exemple d'une structure de base :
+
+```docker
+FROM <Nom de l image de départ>
+RUN <Nom de la commande Bash à lancer>
+COPY <Copie d un fichier de la machine hôte vers le conteneur>
+ENTRYPOINT <Commande avec laquelle sera lancé le conteneur>
+```
+
+Une fois que le fichier est prêt, on lancer la création de l'image avec cette commande :
+
+<AP>sudo docker build -t image -f fichier.Dockerfile .</AP>
+
+L'option *-t* permet de spécifier un *nom:tag* à notre image tandis que l'option *-f* spécifie le chemin du dockerfile depuis lequel l'image sera créé. A noter qu'il faut ajouter un point à la fin de la commande pour indiquer que le fichier est dans le répertoire courant.
+
+### 1ère situation
+
+Voici le fichier de configuration pour la 1ère situation : *php:7.3-apache*
+
+```docker
+FROM debian
+
+# Dépendances
+RUN apt-get update
+RUN apt-get install -y wget apache2 php7.3 php7.3-mysql mariadb-server
+
+# Copie des fichiers MRBS pour Apache2
+RUN rm /var/www/html/index.html
+COPY mrbs-1+2/web /var/www/html
+
+# Création de la BDD MRBS
+COPY mrbs-1+2/tables.my.sql /tmp/tables.my.sql
+
+# Copie des datas de la M2L
+COPY data/m2l_mrbs_data_v1.9.2.sql /tmp/data.sql
+
+# Commandes sur une seule ligne pour fonctionner car mariaDB doit être lancé
+RUN /etc/init.d/mysql start && \
+        mysqladmin create mrbs && \
+        mysql mrbs < /tmp/tables.my.sql && \
+        mysql mrbs < /tmp/data.sql && \
+        mysql -e "GRANT ALL PRIVILEGES ON mrbs.* TO 'mrbs'@'%' identified by 'mrbs';"
+
+# On efface les fichiers d'import SQL
+RUN rm /tmp/*.sql
+
+# Permet de démarrer mysql et apache2 au lancement du conteneur et de ne pas quitter :
+ENTRYPOINT service mysql start && service apache2 start && /usr/bin/tail -f
+```
+
+Création de l'image :
+
+<AP>sudo docker build -t 1-mrbs-lamp-php7.3 -f 1-mrbs-lamp-php7.3.Dockerfile .</AP>
+
+Lancement du conteneur :
+
+<AP>sudo docker run -d -p 10010:80 --name Web1 1-mrbs-lamp-php7.3 tail -f</AP>
+
+### 2ème situation
+
+Voici le fichier de configuration pour la 2ème situation : *php:8.0-apache*
+
+```docker
+FROM debian
+
+# Mise à jour du dépôt
+RUN apt-get update
+
+# Ajout d'un dépôt PHP 8
+RUN apt-get install -y lsb-release apt-transport-https ca-certificates wget
+RUN wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+RUN echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" |tee /etc/apt/sources.list.d/php.list
+
+# Dépendances
+RUN apt-get update
+RUN apt-get install -y wget apache2 php8.0 php8.0-mysql mariadb-server
+
+# Copie des fichiers MRBS pour Apache2
+RUN rm /var/www/html/index.html
+COPY mrbs-1+2/web /var/www/html
+
+# Création de la BDD MRBS
+COPY mrbs-1+2/tables.my.sql /tmp/tables.my.sql
+
+# Copie des datas de la M2L
+COPY data/m2l_mrbs_data_v1.9.2.sql /tmp/data.sql
+
+# Commande sur une seule ligne pour fonctionner car mariaDB doit être lancé
+RUN /etc/init.d/mysql start && \
+        mysqladmin create mrbs && \
+        mysql mrbs < /tmp/tables.my.sql && \
+        mysql mrbs < /tmp/data.sql && \
+        mysql -e "GRANT ALL PRIVILEGES ON mrbs.* TO 'mrbs'@'%' identified by 'mrbs';"
+
+# On efface les fichiers d'import SQL
+RUN rm /tmp/*.sql
+
+# Permet de démarrer les services et de ne pas quitter !
+ENTRYPOINT service mysql start && service apache2 start && /usr/bin/tail -f
+```
+
+Création de l'image :
+
+<AP>sudo docker build -t 2-mrbs-lamp-php8.0 -f 2-mrbs-lamp-php8.0.Dockerfile .</AP>
+
+Lancement du conteneur :
+
+<AP> sudo docker run -d -p 10011:80 --name Web2 2-mrbs-lamp-php8.0 tail -f</AP>
+
+### 3ème situation
+
+Cette situation nécessite de créer 2 fichiers car on lancera 2 conteneurs basés sur 2 images, une pour PHP et une pour MariaDB.
+
+Voici les fichiers de configuration pour le serveur web PHP :
+
+```docker
+FROM php:7.3-apache
+RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable mysqli pdo pdo_mysql
+RUN mv $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
+ENTRYPOINT service apache2 start && /usr/bin/tail -f
+```
+
+Dans le fichier de configuration de MRBS de la base de données du dossier web, il faut spécifier le nom d'hôte du serveur MariaDB mais comme nous utilisons Docker, cela revient à indiquer le pseudo nom DNS du serveur.
+
+La configuration pour MariaDB sera effectuée avec Docker-compose au chapitre suivant. Les conteneurs créés à partir de cette 3ème situation seront déployés avec Docker-compose car il faut que les conteneurs puissent communiquer entre eux.
+
+## docker-compose
+
+### Introduction
+
+Tout comme *dockerfile*, *docker-compose* permet de décrire l'ensemble de notre infrastructure dans un fichier *yml*. C'est un outil puisant pour déployer en une commande toute une infrastructure. Voici un fichier d'exemple :
+
+```yaml
+# Version du langage docker-compose à utiliser :
+version: "3"
+
+services:
+    service1:
+        image: <image de départ sur laquelle le conteneur se lancera>
+        container_name: <Nom donnée au conteneur déployé>
+
+        # Permet de relancer le conteneur automatiquement en cas d'arrêt
+        restart: always
+
+        # Permet de spécifier un volume à partager entre l'hôte et le conteneur.
+        volumes:
+        - dossier/hôte/:dossier/conteneur
+
+        # Permet de mapper un port de l'hôte vers le conteneur.
+        port:
+        - "3306:3306"
+
+    service2:
+        container_name: nomDuService2
+        restart: always
+
+        # Permet de démarrer à partir d'un dockerfile au lieu d'une image
+        build:
+        context: ./
+        dockerfile: "3-php7.3.Dockerfile"
+
+        # Permet de démarrer ce conteneur après le service 1
+        depends_on:
+        - service1
+
+        # Permet de relier les 2 services.
+        links:
+        - service1
+
+        volumes:
+        - ./mrbs-3/web/:/var/www/html/
+
+        ports:
+        - "10012:80"
+```
+
+### Commandes
+
+Pour lancer toute notre infrastructure en mode détaché, on fait:
+
+<AP>sudo docker-compose up -d</AP>
+
+Pour l'arrêter (Arrête et supprime les conteneurs, les images, les réseaux et les volumes créés par la commande *up* !)
+
+<AP>sudo docker-compose down</AP>
+
+Pour voir les logs de tous les conteneurs :
+
+<AP>sudo docker-compose logs</AP>
+
+### 3ème situation
+
+Voici le fichier de configuration pour la 3ème situation :
+
+```yaml
+version: '3'
+
+services:
+    db:
+    image: mariadb
+    container_name: db
+    restart: always
+    volumes:
+    - /home/alex/docker/data:/docker-entrypoint-initdb.d
+    environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: mrbs
+            MYSQL_USER: mrbs
+            MYSQL_PASSWORD: mrbs
+    expose:
+    - "3306"
+
+    web:
+    container_name: web3
+    restart: always
+    build:
+            context: ./
+            dockerfile: "3-php7.3.Dockerfile"
+    depends_on:
+    - db
+    links:
+    - db
+    volumes:
+    - ./mrbs-3/web/:/var/www/html/
+    ports:
+    - "10012:80"
+```
+
+Tous les fichiers SQL qui se trouvent dans le repertoire */home/alex/docker/data* seront chargés dans l'ordre alphabétique.
+
+## Conclusion
+
+Docker est très utile pour tester des applications rapidement, effectuer du déploiement rapides et régler les problèmes d'environnement différents entre les machines. Il permet aussi de faire du load-balancing d'application.
+
+## Notes
+
+[Lexique de commandes Docker](https://linux-debian-commandes.alexandre-dosreis.me/docker)
+
+[Lexique de commandes Docker-Compose](https://linux-debian-commandes.alexandre-dosreis.me/docker-compose)

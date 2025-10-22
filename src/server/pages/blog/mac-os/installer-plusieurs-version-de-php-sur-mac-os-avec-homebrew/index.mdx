@@ -1,0 +1,20 @@
+---
+title: "Installer plusieurs version de PHP sur MacOS avec Homebrew"
+date: 26 Apr 2021
+draft: true
+---
+
+## Présentation et installation d'HomeBrew
+## Installer php 7.4 et php 8.1
+## Changer de version courante
+## Supprimer une version de php
+## Mettre à jour un version de php
+
+```bash
+brew install php@8.1
+
+brew unlink php && brew link --force php@7.1
+
+export PATH="/usr/local/opt/php@8.1/bin:$PATH"
+export PATH="/usr/local/opt/php@8.1/sbin:$PATH"
+```
