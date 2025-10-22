@@ -1,12 +1,8 @@
 import type { PropsWithChildren } from "@kitajs/html";
 import { Link } from "@/server/components/Link";
 import { tags } from "client:script";
-import { MAIN_ROUTER_ELEMENT_ID } from "./contants";
 
-export const Layout = ({
-  children,
-  initialPath,
-}: PropsWithChildren<{ initialPath: string }>) => (
+export const Layout = ({ children }: PropsWithChildren) => (
   <>
     {`<!doctype html>`}
     <html lang="en">

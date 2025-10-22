@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { ActionPill } from "./components/ActionPill";
 import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
+import { sendHtml } from "./utils";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -25,20 +26,17 @@ const app = new Elysia().onRequest(async (ctx) => {
   );
 
   if (!matchRoute) {
-    return new Response("404", {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-      status: 404,
-    });
+    return sendHtml("404", { status: 404 });
   }
 
   const pages = import.meta.glob("/server/pages/**/*.{tsx,mdx}", {
     eager: true,
   });
 
-  const isMDX = matchRoute.src.endsWith(".mdx");
-
   const PageComponent = (pages[`/server/pages/${matchRoute.src}`] as any)
     .default;
+
+  const isMDX = matchRoute.src.endsWith(".mdx");
 
   const Page = isMDX ? (
     <PageComponent
@@ -52,18 +50,15 @@ const app = new Elysia().onRequest(async (ctx) => {
     <PageComponent />
   );
 
+  const isFragment =
+    !!ctx.request.headers.get("Fx-Request") ||
+    pathname.startsWith(FRAGMENT_PREFIX);
+
   const html = contentToString(
-    ctx.request.headers.get("Fx-Request") ||
-      pathname.startsWith(FRAGMENT_PREFIX) ? (
-      Page
-    ) : (
-      <Layout initialPath={matchRoute.pathname}>{Page}</Layout>
-    ),
+    isFragment ? Page : <Layout>{Page}</Layout>,
   ) as string;
 
-  return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
+  return sendHtml(html);
 });
 
 export default {
