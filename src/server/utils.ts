@@ -20,3 +20,6 @@ export const getRouter = (subDir?: string) => {
     dir: join(`src/server/pages`, subDir || ""),
   });
 };
+
+export const ucFirst = (word: string) =>
+  word.charAt(0).toUpperCase() + word.slice(1);

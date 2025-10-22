@@ -1,14 +1,31 @@
 import { Link } from "@/server/components/Link";
-import type { PageConfig } from "@/server/types";
-import { getRouter } from "@/server/utils";
+import type { Page, PageConfig } from "@/server/types";
+import { getRouter, ucFirst } from "@/server/utils";
+import { readdir } from "fs/promises";
 import { join } from "path";
 
 export const config = { title: "Blog" } satisfies PageConfig;
 
-export default () => {
-  const router = getRouter("blog");
+export default async ({ params }: Page) => {
+  const categorySelected = params?.category || "";
+
+  const categories = (
+    await readdir("./src/server/pages/blog", { recursive: false })
+  ).filter((r) => !r.endsWith(".tsx"));
+
+  const router = getRouter(join("blog", categorySelected));
   return (
     <div>
+      <ul>
+        <li>
+          <Link href={`/blog`}>Tout</Link>
+        </li>
+        {categories.map((cat) => (
+          <li>
+            <Link href={`/blog/${cat}`}>{ucFirst(cat)}</Link>
+          </li>
+        ))}
+      </ul>
       <ul>
         {Object.keys(router.routes).map((route) => (
           <li>

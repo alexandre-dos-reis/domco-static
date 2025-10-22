@@ -8,7 +8,7 @@ import { Frame } from "./components/Frame";
 import { frontmatterSchema, getRouter, sendHtml } from "./utils";
 import type { PageConfig } from "./types";
 
-const fetch = (req: Request) => {
+const fetch = async (req: Request) => {
   const { pathname } = new URL(req.url);
 
   const router = getRouter();
@@ -39,7 +39,7 @@ const fetch = (req: Request) => {
 
   const PageComponent = exports.default;
 
-  const Page = isMDX ? (
+  const Page = await (isMDX ? (
     <PageComponent
       components={{
         AP: ActionPill,
@@ -48,8 +48,8 @@ const fetch = (req: Request) => {
       }}
     />
   ) : (
-    <PageComponent />
-  );
+    <PageComponent params={matchRoute.params} />
+  ));
 
   const isFragment =
     !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
