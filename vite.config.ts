@@ -5,15 +5,20 @@ import compression from "vite-plugin-compression2";
 import tsconfig from "./tsconfig.json";
 import rehypePlugins from "./rehypePlugins";
 import remarkPlugins from "./remarkPlugins";
+import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  server: {
+    watch: { usePolling: true },
+  },
   plugins: [
+    domco(),
+    tailwindcss(),
     mdx({
       jsxImportSource: tsconfig.compilerOptions.jsxImportSource,
       rehypePlugins,
       remarkPlugins,
     }),
-    domco(),
     compression({ algorithms: ["brotli", "gzip"] }),
   ],
 });

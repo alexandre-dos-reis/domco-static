@@ -2,14 +2,19 @@ import type { PropsWithChildren } from "@kitajs/html";
 import { Link } from "@/server/components/Link";
 import { tags } from "client:script";
 
-export const Layout = ({ children }: PropsWithChildren) => (
+export const Layout = ({
+  children,
+  title,
+}: PropsWithChildren<{ title?: string }>) => (
   <>
     {`<!doctype html>`}
-    <html lang="en">
+    <html lang="fr">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>TS + Bun + Elysia + Vite + React</title>
+        <title>
+          Alexandre Dos Reis | Portfolio & Blog{title && `| ${title}`}
+        </title>
         {tags}
       </head>
       <body>

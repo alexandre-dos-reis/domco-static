@@ -1,3 +1,12 @@
+import finishersImg from "@/server/assets/finishers.jpg";
+import volvoImg from "@/server/assets/volvo.jpg";
+import universPaieImg from "@/server/assets/univers-paie.jpg";
+import gumImg from "@/server/assets/gum.jpg";
+import gilleAgriImg from "@/server/assets/gille-agri.fr.png";
+import type { PageConfig } from "../types";
+
+export const config = { title: "Accueil" } satisfies PageConfig;
+
 export default () => (
   <div>
     <section>
@@ -165,7 +174,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/_astro/finishers.3c2dae60_17K8hI.webp"
+            src={finishersImg}
             alt=""
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="750"
@@ -188,7 +197,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/_astro/volvo.c97becf6_Z1PmEYY.webp"
+            src={volvoImg}
             alt=""
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1068"
@@ -211,8 +220,8 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/_astro/univers-paie.8bb1d61e_ZqprUv.webp"
-            alt=""
+            src={universPaieImg}
+            alt="Univers Paie"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1280"
             height="719"
@@ -236,7 +245,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/_astro/gum.17afb5c8_WoFLP.webp"
+            src={gumImg}
             alt=""
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1400"
@@ -266,7 +275,8 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/_astro/gille-agri.fr.4b4df73e.png"
+            src={gilleAgriImg}
+            alt="Legoff & Gille | Gille Agri"
             class="block w-full h-56 object-cover transition-all opacity-70 hover:opacity-30 hover:scale-105"
           />
         </a>

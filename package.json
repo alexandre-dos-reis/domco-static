@@ -13,10 +13,16 @@
     "@kitajs/html": "^4.2.10",
     "@mdx-js/rollup": "^3.1.1",
     "@starfederation/datastar-sdk": "^1.0.0-RC.1",
+    "@tailwindcss/vite": "^4.1.15",
     "@wooorm/starry-night": "^3.8.0",
     "elysia": "^1.4.9",
     "rehype-starry-night": "^2.2.0",
-    "sirv": "^3.0.2"
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-mdx-frontmatter": "^5.2.0",
+    "sirv": "^3.0.2",
+    "tailwindcss": "^4.1.15",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/bun": "^1.3.0",

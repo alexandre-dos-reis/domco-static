@@ -6,7 +6,9 @@ import { join } from "node:path";
 import { ActionPill } from "./components/ActionPill";
 import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
-import { sendHtml } from "./utils";
+import { frontmatterSchema, sendHtml } from "./utils";
+import type { PageConfig } from "./types";
+import { z } from "zod";
 
 const getRouter = () => {
   return new Bun.FileSystemRouter({
@@ -33,10 +35,19 @@ const app = new Elysia().onRequest(async (ctx) => {
     eager: true,
   });
 
-  const PageComponent = (pages[`/server/pages/${matchRoute.src}`] as any)
-    .default;
+  const exports = pages[`/server/pages/${matchRoute.src}`] as {
+    default: (args?: any) => JSX.Element;
+    frontmatter?: Record<string, string | number>;
+    config?: PageConfig;
+  };
 
   const isMDX = matchRoute.src.endsWith(".mdx");
+
+  const frontmatter = isMDX
+    ? frontmatterSchema.parse(exports.frontmatter)
+    : undefined;
+
+  const PageComponent = exports.default;
 
   const Page = isMDX ? (
     <PageComponent
@@ -55,7 +66,13 @@ const app = new Elysia().onRequest(async (ctx) => {
     pathname.startsWith(FRAGMENT_PREFIX);
 
   const html = contentToString(
-    isFragment ? Page : <Layout>{Page}</Layout>,
+    isFragment ? (
+      Page
+    ) : (
+      <Layout title={frontmatter?.title || exports.config?.title}>
+        {Page}
+      </Layout>
+    ),
   ) as string;
 
   return sendHtml(html);

@@ -1,9 +1,17 @@
-export const Link = ({ ...p }: JSX.HtmlAnchorTag) => {
+export const Link = (props: JSX.HtmlAnchorTag) => {
+  if (props.href?.startsWith("http")) {
+    return (
+      <a href={props.href} target="_blank" rel="noreferrer noopener">
+        <slot />
+      </a>
+    );
+  }
+
   return (
     <a
-      {...p}
+      {...props}
       fx-method="get"
-      fx-action={p.href}
+      fx-action={props.href}
       fx-trigger="click"
       fx-target="#main"
       fx-swap="innerHTML"
