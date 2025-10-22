@@ -1,4 +1,4 @@
-import { readFile } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { FRAGMENT_PREFIX } from "./src/server/contants.js";
 import { createServer } from "node:http";
 import { join } from "node:path";
@@ -14,25 +14,25 @@ const serveAssets = sirv("dist/client", {
       res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
     }
   },
-  onNoMatch: (req, res) => {
+  onNoMatch: async (req, res) => {
     res.statusCode = 404;
 
-    if (req.headers["accept"]?.startsWith("text/html")) {
-      const filePath = join(__dirname, "./dist/client/_404/index.html");
-
-      readFile(filePath, (err, data) => {
-        if (err) {
-          res.setHeader("Content-Type", "text/plain; charset=utf-8");
-          res.end("404 - Not Found");
-          return;
-        }
+    if (req.headers["accept"]?.includes("text/html")) {
+      try {
+        const filePath = join(__dirname, "./dist/client/_404/index.html");
+        const data = await readFile(filePath);
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.end(data);
-        return;
-      });
-      return;
+      } catch (err) {
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.end("404 - Not Found");
+      }
+
+      return; // Make sure we don't fall through
     }
+
+    // For non-HTML requests
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.end("404 - Not Found");
   },

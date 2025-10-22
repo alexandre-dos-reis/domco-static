@@ -62,11 +62,16 @@ const fetch = (req: Request) => {
   const isFragment =
     !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
 
+  // TODO: Handle changing head tag with fixi.
+
   const html = contentToString(
     isFragment ? (
       Page
     ) : (
-      <Layout title={frontmatter?.title || exports.config?.title}>
+      <Layout
+        title={frontmatter?.title || exports.config?.title}
+        disableSEO={exports.config?.disableSEO}
+      >
         {Page}
       </Layout>
     ),

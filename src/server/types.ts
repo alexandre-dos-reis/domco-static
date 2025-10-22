@@ -1,1 +1,1 @@
-export type PageConfig = { title?: string };
+export type PageConfig = { title?: string; disableSEO?: boolean };

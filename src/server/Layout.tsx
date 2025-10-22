@@ -5,13 +5,15 @@ import { tags } from "client:script";
 export const Layout = ({
   children,
   title,
-}: PropsWithChildren<{ title?: string }>) => (
+  disableSEO,
+}: PropsWithChildren<{ title?: string; disableSEO?: boolean }>) => (
   <>
     {`<!doctype html>`}
     <html lang="fr">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {disableSEO && <meta name="robots" content="noindex, nofollow" />}
         <title>
           Alexandre Dos Reis | Portfolio & Blog{title && `| ${title}`}
         </title>
