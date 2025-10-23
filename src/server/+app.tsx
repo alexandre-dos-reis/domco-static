@@ -1,12 +1,12 @@
 import { contentToString } from "@kitajs/html";
 import { Layout } from "./Layout";
 import { FRAGMENT_PREFIX } from "./contants";
-import { join } from "node:path";
 import { ActionPill } from "./components/ActionPill";
 import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
 import { frontmatterSchema, getRouter, sendHtml } from "./utils";
-import type { PageConfig } from "./types";
+import type { PageExports } from "./types";
+import { join } from "path";
 
 const fetch = async (req: Request) => {
   const { pathname } = new URL(req.url);
@@ -25,11 +25,18 @@ const fetch = async (req: Request) => {
     eager: true,
   });
 
-  const exports = pages[`/server/pages/${matchRoute.src}`] as {
-    default: (args?: any) => JSX.Element;
-    frontmatter?: Record<string, string | number>;
-    config?: PageConfig;
-  };
+  const exports = pages[`/server/pages/${matchRoute.src}`] as PageExports;
+
+  if (matchRoute.kind === "dynamic" && !exports.getStaticPaths) {
+    throw new Error(
+      `Export a getStaticPaths function for the route: ${matchRoute.name}, file: ${matchRoute.filePath}`,
+    );
+  }
+
+  const staticPaths =
+    matchRoute.kind === "dynamic"
+      ? await exports.getStaticPaths?.()
+      : undefined;
 
   const isMDX = matchRoute.src.endsWith(".mdx");
 
@@ -69,8 +76,42 @@ const fetch = async (req: Request) => {
 
 export default {
   fetch,
-  prerender: () => {
-    const routes = Object.keys(getRouter().routes);
+  prerender: async () => {
+    const pages = import.meta.glob("/server/pages/**/*.{tsx,mdx}", {
+      eager: true,
+    });
+    const router = getRouter();
+
+    const routes = (
+      await Promise.all(
+        Object.keys(router.routes).map(async (route) => {
+          const matchedRoute = router.match(route)!;
+          if (matchedRoute.kind === "dynamic") {
+            const exports = pages[
+              `/server/pages/${matchedRoute.src}`
+            ] as PageExports;
+
+            if (!exports?.getStaticPaths) {
+              throw new Error(
+                `Export a getStaticPaths function for the route: ${matchedRoute.name}, file: ${matchRoute.filePath}`,
+              );
+            }
+
+            const staticPaths = await exports.getStaticPaths();
+
+            return staticPaths
+              .map(({ params }) =>
+                Object.entries(params).map(([param, path]) =>
+                  matchedRoute.pathname.replace(`[${param}]`, path),
+                ),
+              )
+              .flat();
+          }
+
+          return matchedRoute.pathname;
+        }),
+      )
+    ).flat();
     return [...routes, ...routes.map((r) => join(FRAGMENT_PREFIX, r))];
   },
 };

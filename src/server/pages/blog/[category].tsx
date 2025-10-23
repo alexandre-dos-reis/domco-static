@@ -1,17 +1,24 @@
 import { Link } from "@/server/components/Link";
-import type { Page, PageConfig } from "@/server/types";
+import type { GetStaticPaths, Page, PageConfig } from "@/server/types";
 import { getRouter, ucFirst } from "@/server/utils";
 import { readdir } from "fs/promises";
 import { join } from "path";
 
 export const config = { title: "Blog" } satisfies PageConfig;
 
-export default async ({ params }: Page) => {
-  const categorySelected = params?.category || "";
-
+export const getStaticPaths = (async () => {
   const categories = (
     await readdir("./src/server/pages/blog", { recursive: false })
   ).filter((r) => !r.endsWith(".tsx"));
+
+  return [
+    { params: { category: "" } },
+    ...categories.map((cat) => ({ params: { category: cat } })),
+  ];
+}) satisfies GetStaticPaths;
+
+export default async ({ params }: Page) => {
+  const categorySelected = params?.category || "";
 
   const router = getRouter(join("blog", categorySelected));
   return (
@@ -20,7 +27,7 @@ export default async ({ params }: Page) => {
         <li>
           <Link href={`/blog`}>Tout</Link>
         </li>
-        {categories.map((cat) => (
+        {(await getStaticPaths()).map(({ params: { category: cat } }) => (
           <li>
             <Link href={`/blog/${cat}`}>{ucFirst(cat)}</Link>
           </li>
@@ -29,7 +36,7 @@ export default async ({ params }: Page) => {
       <ul>
         {Object.keys(router.routes).map((route) => (
           <li>
-            <Link href={join("/blog", route)}>{route}</Link>
+            <Link href={join("/blog", categorySelected, route)}>{route}</Link>
           </li>
         ))}
       </ul>

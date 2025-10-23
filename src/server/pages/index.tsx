@@ -1,3 +1,4 @@
+import gum from "@/server/assets/gum.jpg";
 import type { PageConfig } from "../types";
 
 export const config = { title: "Accueil" } satisfies PageConfig;
@@ -240,7 +241,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/gum.jpg"
+            src={gum}
             alt=""
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1400"
