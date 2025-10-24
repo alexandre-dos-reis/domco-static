@@ -33,11 +33,6 @@ const fetch = async (req: Request) => {
     );
   }
 
-  const staticPaths =
-    matchRoute.kind === "dynamic"
-      ? await exports.getStaticPaths?.()
-      : undefined;
-
   const isMDX = matchRoute.src.endsWith(".mdx");
 
   const frontmatter = isMDX
@@ -86,14 +81,17 @@ export default {
       await Promise.all(
         Object.keys(router.routes).map(async (route) => {
           const matchedRoute = router.match(route)!;
-          if (matchedRoute.kind === "dynamic") {
+          //
+          // Dynamic, catch-all, optional catch-all routes
+          //
+          if (matchedRoute.kind !== "exact") {
             const exports = pages[
               `/server/pages/${matchedRoute.src}`
             ] as PageExports;
 
             if (!exports?.getStaticPaths) {
               throw new Error(
-                `Export a getStaticPaths function for the route: ${matchedRoute.name}, file: ${matchRoute.filePath}`,
+                `Export a getStaticPaths function for the route: ${matchedRoute.name}, file: ${matchedRoute.filePath}`,
               );
             }
 
@@ -112,6 +110,7 @@ export default {
         }),
       )
     ).flat();
+
     return [...routes, ...routes.map((r) => join(FRAGMENT_PREFIX, r))];
   },
 };
