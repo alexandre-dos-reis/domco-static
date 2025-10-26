@@ -215,7 +215,7 @@ export default () => (
         </a>
         <a
           class="relative overflow-hidden rounded-lg group"
-          href="https://www.universpaie.com"
+          href="https://www.linkedin.com/company/univers-paie"
           target="_blank"
           rel="noreferrer noopener"
         >
