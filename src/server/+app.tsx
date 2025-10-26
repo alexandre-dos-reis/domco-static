@@ -61,6 +61,7 @@ const fetch = async (req: Request) => {
       isFragment={isFragment}
       title={frontmatter?.title || exports.config?.title}
       disableSEO={exports.config?.disableSEO}
+      pathname={pathname}
     >
       {Page}
     </Layout>,

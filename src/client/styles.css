@@ -1,6 +1,142 @@
 @import "tailwindcss";
-/* @import "@wooorm/starry-night/style/both"; */
 
 body {
   @apply overflow-y-scroll;
+}
+
+html {
+  @apply bg-gray-800 text-gray-300 antialiased font-mono tracking-tight text-base;
+}
+
+body {
+  @apply overflow-y-scroll;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply mb-3 text-gray-200 font-semibold;
+}
+
+h1 {
+  @apply text-5xl;
+}
+
+h2 {
+  @apply text-3xl;
+}
+
+h3 {
+  @apply text-2xl;
+}
+
+h4 {
+  @apply text-xl;
+}
+
+h5 {
+  @apply text-lg;
+}
+
+h6 {
+  @apply font-bold;
+}
+
+section {
+  @apply mb-16;
+}
+
+p {
+  @apply leading-6 mb-3;
+}
+
+p a {
+  @apply text-yellow-400;
+}
+
+p code {
+  @apply bg-black p-1 rounded-md;
+}
+
+a {
+  /* @apply underline underline-offset-4 decoration-gray-400 decoration-1 hover:text-gray-400 */
+  @apply hover:opacity-60;
+}
+
+u {
+  @apply underline underline-offset-4;
+}
+
+strong,
+b {
+  @apply font-bold;
+}
+
+ul {
+  @apply list-disc;
+}
+
+li {
+  @apply mb-3;
+}
+
+@font-face {
+  font-family: "dancing";
+  src: url("/client/DancingScript.ttf");
+}
+
+.handwriting {
+  font-family: "dancing";
+}
+
+/* Markdown */
+
+.markdown a {
+  @apply text-yellow-400;
+}
+
+.markdown h2 {
+  @apply mt-16 mb-4;
+}
+
+.markdown h3 {
+  @apply mt-8 mb-4;
+}
+
+.markdown pre {
+  @apply rounded-xl px-4 py-2 mb-4;
+}
+
+.markdown p > code {
+  @apply bg-slate-300 text-gray-900;
+}
+
+.markdown img {
+  @apply block mb-8 mt-8 w-full sm:w-auto max-w-full mx-auto rounded-xl;
+}
+
+.markdown table {
+  @apply border text-center border-collapse bg-gray-800 border-gray-600 mt-3 mb-6;
+}
+
+.markdown thead,
+.markdown tr {
+  @apply border-b border-gray-600;
+}
+
+.markdown th {
+  @apply font-black;
+}
+
+.markdown th,
+.markdown td {
+  @apply text-sm px-2 py-2 border-r border-gray-600;
+}
+
+.markdown ul,
+.markdown li {
+  @apply list-inside;
 }

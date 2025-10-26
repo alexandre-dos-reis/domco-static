@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun --bun run vite",
     "check": "tsc",
-    "build": "bun --bun run vite build",
+    "build": "bun --bun run vite build && mv ./dist/server/assets ./dist/client",
     "start": "bun --bun run server.ts"
   },
   "dependencies": {
@@ -27,7 +27,7 @@
     "@types/bun": "^1.3.0",
     "domco": "^4.4.0",
     "typescript": "^5.9.0",
-    "vite": "^7.1.11",
+    "vite": "^7.1.12",
     "vite-plugin-compression2": "^2.3.0"
   }
 }

@@ -1,6 +1,6 @@
 import { Link } from "./Link";
 
-export const Header = () => {
+export const Header = ({ pathname }: { pathname: string }) => {
   const navLinks: { href: string; label: string }[] = [
     {
       href: "/",
@@ -13,8 +13,6 @@ export const Header = () => {
       label: "Contact",
     },
   ];
-
-  const starterUrl = "/";
 
   return (
     <header class="w-full mx-auto p-4 sticky top-0 backdrop-blur-md z-50">
@@ -31,7 +29,7 @@ export const Header = () => {
               <li class="flex justify-center items-end m-0">
                 <Link
                   href={n.href}
-                  class={`mx-3 tracking-wide text-2xl ${starterUrl === n.href && "underline decoration-1 underline-offset-10"}`}
+                  class={`mx-3 tracking-wide text-2xl ${n.href === pathname && "underline decoration-1 underline-offset-10"}`}
                 >
                   {" "}
                   {n.label}{" "}

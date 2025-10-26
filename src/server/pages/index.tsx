@@ -1,4 +1,8 @@
 import gum from "@/server/assets/gum.jpg";
+import volvo from "@/server/assets/volvo.jpg";
+import finishers from "@/server/assets/finishers.jpg";
+import up from "@/server/assets/univers-paie.jpg";
+import gilleAgri from "@/server/assets/gille-agri.fr.png";
 import type { PageConfig } from "../types";
 
 export const config = { title: "Accueil" } satisfies PageConfig;
@@ -8,14 +12,14 @@ export default () => (
     <section>
       <h2>Qui suis-je ? 🕵️‍♂️</h2>
       <p>
-        Bonjour 👋 je m'appelle
+        Bonjour 👋 je m'appelle{" "}
         <span class="text-rose-400 text-lg">Alexandre Dos Reis</span> et je suis
         développeur fullstack depuis 2019. Depuis Juin 2025, je suis à la
         recherche d'un emploi.
       </p>
       <p>
         Ce site me sert de portfolio mais aussi de recueil d'articles et
-        procédures écrit pendant mes études, visible dans la partie
+        procédures écrit pendant mes études, visible dans la partie{" "}
         <a href="/blog">blog</a>.
       </p>
       <div class="flex flex-wrap items-center gap-x-4">
@@ -170,7 +174,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/finishers.jpg"
+            src={finishers}
             alt="Finishers"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="750"
@@ -193,7 +197,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/volvo.jpg"
+            src={volvo}
             alt="Volvo trucks blainville"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1068"
@@ -216,7 +220,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/univers-paie.jpg"
+            src={up}
             alt="Univers Paie | Hr Path"
             class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
             width="1280"
@@ -271,7 +275,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           <img
-            src="/gille-agri.fr.png"
+            src={gilleAgri}
             class="block w-full h-56 object-cover transition-all opacity-70 hover:opacity-30 hover:scale-105"
           />
         </a>
