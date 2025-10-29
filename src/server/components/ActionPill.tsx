@@ -9,19 +9,19 @@ export const ActionPill = ({
 }) => {
   return (
     <div
-      class="relative action-pill"
-      onclick="navigator.clipboard.writeText(this.querySelector('code').innerHTML)"
+      class="relative action-pill cursor-pointer"
+      onclick="window.handleCopy(this)"
     >
-      <div class="absolute inset-y-0 right-3 z-[1] h-full flex items-center justify-center">
-        <div class="btn btn-neutral btn-circle">
+      <div class=" absolute inset-y-0 right-3 z-1 p-2">
+        <div class="bg-slate-900">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             stroke-width="1.5"
             stroke="currentColor"
-            height="16px"
-            width="16px"
+            height="20px"
+            width="20px"
           >
             <path
               stroke-linecap="round"
@@ -31,14 +31,12 @@ export const ActionPill = ({
           </svg>
         </div>
       </div>
-      <div class="mockup-code bg-base-300 cursor-pointer shadow-base-300 shadow-xl border-l rounded-l-none border-secondary">
-        <pre
-          data-prefix={a ?? "$"}
-          class="my-0 py-0 bg-base-300 whitespace-nowrap text-nowrap flex items-center justify-start"
-        >
-          <code>{children}</code>
-        </pre>
-      </div>
+      <pre
+        data-prefix={a ?? "$"}
+        class="my-0 py-0 bg-base-300 whitespace-nowrap text-nowrap flex items-center justify-start"
+      >
+        <code class="pr-10">{children}</code>
+      </pre>
     </div>
   );
 };

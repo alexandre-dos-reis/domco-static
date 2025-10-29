@@ -4,7 +4,7 @@ import { FRAGMENT_PREFIX } from "./contants";
 import { ActionPill } from "./components/ActionPill";
 import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
-import { frontmatterSchema, getRouter, sendHtml } from "./utils";
+import { frontmatterSchema, getRouter, getStaticPath, sendHtml } from "./utils";
 import type { PageExports } from "./types";
 import { join } from "path";
 
@@ -33,6 +33,17 @@ const fetch = async (req: Request) => {
     );
   }
 
+  const staticPath =
+    matchRoute.kind !== "exact"
+      ? getStaticPath(matchRoute, await exports.getStaticPaths?.())
+      : undefined;
+
+  if (matchRoute.kind !== "exact" && !staticPath) {
+    throw new Error(
+      `StaticPath not found for route: ${matchRoute.pathname}, file: ${matchRoute.filePath}`,
+    );
+  }
+
   const isMDX = matchRoute.src.endsWith(".mdx");
 
   const frontmatter = isMDX
@@ -58,8 +69,9 @@ const fetch = async (req: Request) => {
 
   const html = contentToString(
     <Layout
+      isMDX={isMDX}
       isFragment={isFragment}
-      title={frontmatter?.title || exports.config?.title}
+      title={staticPath?.title || frontmatter?.title || exports.config?.title}
       disableSEO={exports.config?.disableSEO}
       pathname={pathname}
     >

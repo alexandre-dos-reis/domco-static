@@ -12,8 +12,11 @@ export const getStaticPaths = (async () => {
   ).filter((r) => !r.endsWith(".tsx"));
 
   return [
-    { params: { category: "" }, title: "" },
-    ...categories.map((cat) => ({ params: { category: cat }, title: cat })),
+    { params: { category: "/" } },
+    ...categories.map((cat) => ({
+      params: { category: cat },
+      title: ucFirst(cat),
+    })),
   ];
 }) satisfies GetStaticPaths;
 
@@ -27,7 +30,7 @@ export default async ({ params }: Page<typeof getStaticPaths>) => {
           {(await getStaticPaths()).map(({ params: { category: cat } }) => (
             <li class="list-none bg-gray-300 py-[2px] px-2 m-1 rounded-lg">
               <Link class="text-gray-800 text-sm" href={join("/blog", cat)}>
-                {cat === "" ? "Toutes" : ucFirst(cat)}
+                {cat === "/" ? "Toutes" : ucFirst(cat)}
               </Link>
             </li>
           ))}

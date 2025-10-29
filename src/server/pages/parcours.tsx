@@ -1,7 +1,9 @@
 import type { PageConfig } from "../types";
 import pictureId from "@/server/assets/photo-id.jpg";
 
-export const config = { title: "Parcours" } satisfies PageConfig;
+export const config = {
+  title: "Parcours",
+} satisfies PageConfig;
 
 export default () => (
   <div>

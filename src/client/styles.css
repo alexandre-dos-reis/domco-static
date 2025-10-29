@@ -92,51 +92,51 @@ li {
   font-family: "dancing";
 }
 
-/* Markdown */
+/* MDX */
 
-.markdown a {
+.mdx a {
   @apply text-yellow-400;
 }
 
-.markdown h2 {
+.mdx h2 {
   @apply mt-16 mb-4;
 }
 
-.markdown h3 {
+.mdx h3 {
   @apply mt-8 mb-4;
 }
 
-.markdown pre {
-  @apply rounded-xl px-4 py-2 mb-4;
+.mdx pre {
+  @apply bg-slate-900 rounded-xl px-4 py-2 mb-4 overflow-x-auto;
 }
 
-.markdown p > code {
+.mdx p > code {
   @apply bg-slate-300 text-gray-900;
 }
 
-.markdown img {
+.mdx img {
   @apply block mb-8 mt-8 w-full sm:w-auto max-w-full mx-auto rounded-xl;
 }
 
-.markdown table {
+.mdx table {
   @apply border text-center border-collapse bg-gray-800 border-gray-600 mt-3 mb-6;
 }
 
-.markdown thead,
-.markdown tr {
+.mdx thead,
+.mdx tr {
   @apply border-b border-gray-600;
 }
 
-.markdown th {
+.mdx th {
   @apply font-black;
 }
 
-.markdown th,
-.markdown td {
+.mdx th,
+.mdx td {
   @apply text-sm px-2 py-2 border-r border-gray-600;
 }
 
-.markdown ul,
-.markdown li {
+.mdx ul,
+.mdx li {
   @apply list-inside;
 }
