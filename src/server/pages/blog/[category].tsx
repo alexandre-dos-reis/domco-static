@@ -26,7 +26,7 @@ export default async ({ params }: Page<typeof getStaticPaths>) => {
         <ul class="list-none flex flex-wrap">
           {(await getStaticPaths()).map(({ params: { category: cat } }) => (
             <li class="list-none bg-gray-300 py-[2px] px-2 m-1 rounded-lg">
-              <Link class="text-gray-800 text-sm" href={`/blog/${cat}`}>
+              <Link class="text-gray-800 text-sm" href={join("/blog", cat)}>
                 {cat === "" ? "Toutes" : ucFirst(cat)}
               </Link>
             </li>

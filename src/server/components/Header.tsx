@@ -29,7 +29,8 @@ export const Header = ({ pathname }: { pathname: string }) => {
               <li class="flex justify-center items-end m-0">
                 <Link
                   href={n.href}
-                  class={`mx-3 tracking-wide text-2xl ${n.href === pathname && "underline decoration-1 underline-offset-10"}`}
+                  class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
+                  onclick="window.handleMenuNavigation(this)"
                 >
                   {" "}
                   {n.label}{" "}
