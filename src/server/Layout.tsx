@@ -45,7 +45,6 @@ export const Layout = ({
           {disableSEO && <meta name="robots" content="noindex, nofollow" />}
           {headTitle}
           {tags}
-          <link rel="stylesheet" href="/client/styles.css" />
         </head>
         <body class="flex flex-col justify-between">
           <Header pathname={pathname || "/"} />

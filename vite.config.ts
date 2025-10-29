@@ -21,6 +21,11 @@ export default defineConfig({
       rehypePlugins,
       remarkPlugins,
     }),
-    compression({ algorithms: ["brotli", "gzip"] }),
+    compression({
+      include: new RegExp(
+        /\.(html|xml|css|json|js|mjs|svg|yaml|yml|toml|png|ttf|mp4|jpg)$/,
+      ),
+      algorithms: ["brotli", "gzip"],
+    }),
   ],
 });
