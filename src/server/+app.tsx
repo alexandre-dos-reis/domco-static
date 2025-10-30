@@ -5,7 +5,7 @@ import { Command } from "./components/Command";
 import { Frame } from "./components/Frame";
 import { frontmatterSchema, getRouter, getStaticPath, sendHtml } from "./utils";
 import type { PageExports } from "./types";
-import { join } from "path";
+import { prerender } from "./prerender";
 
 const fetch = async (req: Request) => {
   let { pathname } = new URL(req.url);
@@ -35,12 +35,12 @@ const fetch = async (req: Request) => {
     );
   }
 
-  const staticPath =
+  const staticPaths =
     matchRoute.kind !== "exact"
       ? getStaticPath(matchRoute, await exports.getStaticPaths?.())
       : undefined;
 
-  if (matchRoute.kind !== "exact" && !staticPath) {
+  if (matchRoute.kind !== "exact" && !staticPaths) {
     throw new Error(
       `StaticPath not found for route: ${matchRoute.pathname}, file: ${matchRoute.filePath}`,
     );
@@ -56,7 +56,7 @@ const fetch = async (req: Request) => {
     Layout({
       isMDX,
       isFragment,
-      title: staticPath?.title || frontmatter?.title || exports.config?.title,
+      title: staticPaths?.title || frontmatter?.title || exports.config?.title,
       disableSEO: exports.config?.disableSEO,
       pathname,
       children: await exports.default(
@@ -76,42 +76,5 @@ const fetch = async (req: Request) => {
 
 export default {
   fetch,
-  prerender: async () => {
-    const pages = import.meta.glob("/server/pages/**/*.{tsx,mdx}", {
-      eager: true,
-    });
-    const router = getRouter();
-
-    const routes = (
-      await Promise.all(
-        Object.keys(router.routes).map(async (route) => {
-          const matchedRoute = router.match(route)!;
-          if (matchedRoute.kind === "exact") {
-            return matchedRoute.pathname;
-          }
-          const exports = pages[
-            `/server/pages/${matchedRoute.src}`
-          ] as PageExports;
-
-          if (!exports?.getStaticPaths) {
-            throw new Error(
-              `Export a getStaticPaths function for the route: ${matchedRoute.name}, file: ${matchedRoute.filePath}`,
-            );
-          }
-
-          const staticPaths = await exports.getStaticPaths();
-
-          return staticPaths
-            .map(({ params }) =>
-              Object.entries(params).map(([param, path]) =>
-                matchedRoute.pathname.replace(`[${param}]`, path),
-              ),
-            )
-            .flat();
-        }),
-      )
-    ).flat();
-
-    return [...routes, ...routes.map((r) => join(FRAGMENT_PREFIX, r))];
-  },
+  prerender,
 };

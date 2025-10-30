@@ -1,6 +1,6 @@
 import z from "zod";
 import { join } from "path";
-import type { StaticPath } from "./types";
+import type { StaticPaths } from "./types";
 
 export const sendHtml = (
   body?: BodyInit | JSX.Element | null,
@@ -30,8 +30,8 @@ export const ucFirst = (word: string) =>
 
 export const getStaticPath = (
   matchedRoute: Bun.MatchedRoute,
-  staticPaths: StaticPath[] | undefined,
-): StaticPath | undefined => {
+  staticPaths: StaticPaths[] | undefined,
+): StaticPaths | undefined => {
   if (!staticPaths) return undefined;
 
   return staticPaths.find((path) => {

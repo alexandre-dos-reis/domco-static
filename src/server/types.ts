@@ -1,8 +1,8 @@
 export type PageConfig = { title?: string; disableSEO?: boolean };
 
-export type StaticPath = { params: Record<string, string>; title?: string };
+export type StaticPaths = { params: Record<string, string>; title?: string };
 
-export type GetStaticPaths = () => Promise<Array<StaticPath>>;
+export type GetStaticPaths = () => Promise<Array<StaticPaths>>;
 
 export type Page<
   TGetStaticPaths extends GetStaticPaths | undefined = undefined,
