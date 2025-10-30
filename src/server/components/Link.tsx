@@ -14,7 +14,7 @@ export const Link = (props: JSX.HtmlAnchorTag) => {
       fx-action={props.href}
       fx-trigger="click"
       fx-target="#main"
-      fx-swap="innerHTML"
+      fx-swap="outerHTML"
       fx-push-url
     />
   );

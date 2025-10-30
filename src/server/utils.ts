@@ -2,8 +2,11 @@ import z from "zod";
 import { join } from "path";
 import type { StaticPath } from "./types";
 
-export const sendHtml = (body?: BodyInit | null, init?: ResponseInit) =>
-  new Response(body, {
+export const sendHtml = (
+  body?: BodyInit | JSX.Element | null,
+  init?: ResponseInit,
+) =>
+  new Response(body as string, {
     ...init,
     headers: { ...init?.headers, "Content-Type": "text/html; charset=utf-8" },
   });

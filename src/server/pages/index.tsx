@@ -24,8 +24,8 @@ export default () => (
       </p>
       <div class="flex flex-wrap items-center gap-x-4">
         <p>Retrouvez-moi sur :</p>
-        <ul class="flex items-center flex-1 sm:flex-initial list-none gap-x-4">
-          <li>
+        <ul class="flex list items-center flex-1 sm:flex-initial list-none gap-x-4">
+          <li class="list-none">
             <a
               class="inline-block hover:opacity-60"
               href="https://www.linkedin.com/in/a-dos-reis"

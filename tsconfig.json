@@ -17,7 +17,7 @@
     "allowJs": true,
     "checkJs": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@kitajs/html",
+    "jsxImportSource": "hono/jsx",
     "strict": true,
     "noUnusedLocals": true,
     "noImplicitOverride": true,

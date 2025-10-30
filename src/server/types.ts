@@ -13,7 +13,7 @@ export type Page<
 };
 
 export type PageExports = {
-  default: (args?: any) => JSX.Element;
+  default: (args?: any) => JSX.Element | Promise<JSX.Element>;
   frontmatter?: Record<string, string | number>;
   config?: PageConfig;
   getStaticPaths?: GetStaticPaths;

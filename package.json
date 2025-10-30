@@ -10,7 +10,15 @@
     "start": "bun --bun run server.ts"
   },
   "dependencies": {
-    "@kitajs/html": "^4.2.10",
+    "sirv": "^3.0.2"
+  },
+  "devDependencies": {
+    "hono": "^4.10.4",
+    "@types/bun": "^1.3.0",
+    "domco": "^4.5.1",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.12",
+    "vite-plugin-compression2": "^2.3.0",
     "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/vite": "^4.1.15",
     "@wooorm/starry-night": "^3.8.0",
@@ -19,15 +27,7 @@
     "remark-gfm": "^4.0.1",
     "remark-mdx-frontmatter": "^5.2.0",
     "remark-mdx-images": "^3.0.0",
-    "sirv": "^3.0.2",
     "tailwindcss": "^4.1.15",
     "zod": "^4.1.12"
-  },
-  "devDependencies": {
-    "@types/bun": "^1.3.0",
-    "domco": "^4.5.0",
-    "typescript": "^5.9.0",
-    "vite": "^7.1.12",
-    "vite-plugin-compression2": "^2.3.0"
   }
 }

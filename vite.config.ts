@@ -11,8 +11,6 @@ export default defineConfig({
   server: {
     watch: { usePolling: true },
   },
-  build: { emitAssets: true, ssrEmitAssets: true },
-  environments: { ssr: { build: { emitAssets: true } } },
   plugins: [
     domco(),
     tailwindcss(),

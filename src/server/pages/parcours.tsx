@@ -40,7 +40,7 @@ export default () => (
           rel="noreferrer noopener"
         >
           Pop Productions
-        </a>
+        </a>{" "}
         dans la production sonore en tant qu'ingénieur du son.
       </p>
       <p>
@@ -68,7 +68,7 @@ export default () => (
       <p>
         Puis en 2021, j'ai débuté une licence en{" "}
         <b>Développement d'application Web &amp; Mobile</b> dispensée au lycée
-        Sup'Avenir à Caen. Cette formation est conduite par le
+        Sup'Avenir à Caen. Cette formation est conduite par le{" "}
         <a href="https://www.cnam.fr" target="_blank" rel="noreferrer noopener">
           CNAM
         </a>
@@ -91,6 +91,7 @@ export default () => (
         >
           LinkedIn
         </a>
+        .
       </p>
     </section>
   </div>
