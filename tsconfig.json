@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
+    "target": "esnext",
     "lib": [
       "ESNext",
       "DOM",
       "DOM.Iterable"
     ],
     "skipLibCheck": true,
-    "module": "Preserve",
+    "module": "esnext",
     "moduleResolution": "Bundler",
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,

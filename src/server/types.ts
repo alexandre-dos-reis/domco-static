@@ -4,12 +4,8 @@ export type StaticPaths = { params: Record<string, string>; title?: string };
 
 export type GetStaticPaths = () => Promise<Array<StaticPaths>>;
 
-export type Page<
-  TGetStaticPaths extends GetStaticPaths | undefined = undefined,
-> = {
-  params: TGetStaticPaths extends (...args: any) => any
-    ? Awaited<ReturnType<TGetStaticPaths>>[0]["params"]
-    : undefined;
+export type Page = {
+  params: Record<string, string>;
 };
 
 export type PageExports = {

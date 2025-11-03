@@ -1,11 +1,9 @@
 import { Layout } from "./Layout";
 import { FRAGMENT_PREFIX } from "./contants";
-import { ActionPill } from "./components/ActionPill";
-import { Command } from "./components/Command";
-import { Frame } from "./components/Frame";
-import { frontmatterSchema, getRouter, getStaticPath, sendHtml } from "./utils";
-import type { PageExports } from "./types";
-import { prerender } from "./prerender";
+import { getRouter, sendHtml } from "./utils";
+
+import { join } from "path";
+import { readdir } from "node:fs/promises";
 
 const fetch = async (req: Request) => {
   let { pathname } = new URL(req.url);
@@ -23,58 +21,48 @@ const fetch = async (req: Request) => {
     return sendHtml("404", { status: 404 });
   }
 
-  const pages = import.meta.glob("/server/pages/**/*.{tsx,mdx}", {
-    eager: true,
-  });
+  const module = import.meta.glob("/server/pages/**/*.tsx", { eager: true })[
+    `/server/pages/${matchRoute.src}`
+  ] as {
+    default: (p: any) => Promise<JSX.Element>;
+  };
 
-  const exports = pages[`/server/pages/${matchRoute.src}`] as PageExports;
-
-  if (matchRoute.kind === "dynamic" && !exports.getStaticPaths) {
-    throw new Error(
-      `Export a getStaticPaths function for the route: ${matchRoute.name}, file: ${matchRoute.filePath}`,
-    );
-  }
-
-  const staticPaths =
-    matchRoute.kind !== "exact"
-      ? getStaticPath(matchRoute, await exports.getStaticPaths?.())
-      : undefined;
-
-  if (matchRoute.kind !== "exact" && !staticPaths) {
-    throw new Error(
-      `StaticPath not found for route: ${matchRoute.pathname}, file: ${matchRoute.filePath}`,
-    );
-  }
-
-  const isMDX = matchRoute.src.endsWith(".mdx");
-
-  const frontmatter = isMDX
-    ? frontmatterSchema.parse(exports.frontmatter)
-    : undefined;
+  const rendered = await module.default({ params: matchRoute.params });
 
   return sendHtml(
     Layout({
-      isMDX,
       isFragment,
-      title: staticPaths?.title || frontmatter?.title || exports.config?.title,
-      disableSEO: exports.config?.disableSEO,
+      title: undefined,
+      disableSEO: undefined,
       pathname,
-      children: await exports.default(
-        isMDX
-          ? {
-              components: {
-                AP: ActionPill,
-                C: Command,
-                Frame: Frame,
-              },
-            }
-          : { params: matchRoute.params },
-      ),
+      children: rendered,
     }),
   );
 };
 
 export default {
   fetch,
-  prerender,
+  prerender: async () => {
+    const articles = (
+      await readdir("./src/server/content", {
+        recursive: true,
+      })
+    )
+      .filter((p) => p.endsWith(".mdx"))
+      .map((p) => p.replace("/index.mdx", ""));
+
+    const categories = [
+      ...new Map(
+        articles.map((c) => c.replace(/\/.*$/, "")).map((a) => [a, a]),
+      ).values(),
+    ];
+
+    return [
+      "/",
+      "/parcours",
+      "/blog",
+      ...categories.map((c) => join("/blog", c)),
+      ...articles.map((a) => join("/blog", a)),
+    ];
+  },
 };

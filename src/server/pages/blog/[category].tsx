@@ -1,48 +1,52 @@
+import { getArticles } from "@/server/articles";
 import { Link } from "@/server/components/Link";
-import type { GetStaticPaths, Page, PageConfig } from "@/server/types";
-import { getRouter, ucFirst } from "@/server/utils";
-import { readdir } from "fs/promises";
+import type { Page, PageConfig } from "@/server/types";
+import { ucFirst } from "@/server/utils";
 import { join } from "path";
 
-export const config = { title: "Blog" } satisfies PageConfig;
+export default async ({ params }: Page) => {
+  const articles = await getArticles();
 
-export const getStaticPaths = (async () => {
-  const categories = (
-    await readdir("./src/server/pages/blog", { recursive: false })
-  ).filter((r) => !r.endsWith(".tsx"));
-
-  return [
-    { params: { category: "/" } },
-    ...categories.map((cat) => ({
-      params: { category: cat },
-      title: ucFirst(cat),
-    })),
+  const categories = [
+    ...new Map(articles.map((a) => [a.category, a])).values(),
   ];
-}) satisfies GetStaticPaths;
 
-export default async ({ params }: Page<typeof getStaticPaths>) => {
-  const router = getRouter(join("blog", params.category));
   return (
     <div>
       <section>
         <h2>Catégories 🏷️</h2>{" "}
         <ul class="list-none flex flex-wrap">
-          {(await getStaticPaths()).map(({ params: { category: cat } }) => (
+          <li class="list-none bg-gray-300 py-[2px] px-2 m-1 rounded-lg">
+            <Link class="text-gray-800 text-sm" href="/blog">
+              Toutes
+            </Link>
+          </li>
+          {categories.map((c) => (
             <li class="list-none bg-gray-300 py-[2px] px-2 m-1 rounded-lg">
-              <Link class="text-gray-800 text-sm" href={join("/blog", cat)}>
-                {cat === "/" ? "Toutes" : ucFirst(cat)}
+              <Link
+                class="text-gray-800 text-sm"
+                href={join("/blog", c.category)}
+              >
+                {ucFirst(c.category)}
               </Link>
             </li>
           ))}
         </ul>
       </section>
       <section>
-        <h2>30 Publications 📃</h2>{" "}
+        <h2>{articles.length} Publications 📃</h2>{" "}
         <ul class="list-none">
-          {Object.keys(router.routes).map((route) => (
+          {(params.category
+            ? articles.filter((a) => a.category === params.category)
+            : articles
+          ).map((a) => (
             <li class="flex gap-x-10">
-              <time class="text-gray-500 whitespace-nowrap">14 Jun 2021</time>
-              <Link href={join("/blog", params.category, route)}>{route}</Link>
+              <time class="text-gray-500 whitespace-nowrap">
+                {a.frontmatter.date}
+              </time>
+              <Link href={join("/blog", a.category, a.article)}>
+                {a.article}
+              </Link>
             </li>
           ))}
         </ul>

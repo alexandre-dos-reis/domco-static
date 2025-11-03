@@ -24,7 +24,7 @@ export default () => (
       </p>
       <div class="flex flex-wrap items-center gap-x-4">
         <p>Retrouvez-moi sur :</p>
-        <ul class="flex list items-center flex-1 sm:flex-initial list-none gap-x-4">
+        <ul class="flex items-center flex-1 sm:flex-initial list-none gap-x-4">
           <li class="list-none">
             <a
               class="inline-block hover:opacity-60"
@@ -38,7 +38,7 @@ export default () => (
               />
             </a>
           </li>
-          <li>
+          <li class="list-none">
             <a
               class="inline-block hover:opacity-60"
               href="https://github.com/alexandre-dos-reis"
@@ -57,7 +57,7 @@ export default () => (
               </svg>
             </a>
           </li>
-          <li>
+          <li class="list-none">
             <a
               class="inline-block hover:opacity-60"
               href="mailto:ajm.dosreis.daponte@gmail.com"

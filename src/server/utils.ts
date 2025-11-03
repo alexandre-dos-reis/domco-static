@@ -1,4 +1,3 @@
-import z from "zod";
 import { join } from "path";
 import type { StaticPaths } from "./types";
 
@@ -10,12 +9,6 @@ export const sendHtml = (
     ...init,
     headers: { ...init?.headers, "Content-Type": "text/html; charset=utf-8" },
   });
-
-export const frontmatterSchema = z.object({
-  title: z.string(),
-  date: z.string().optional(),
-  draft: z.boolean().default(false),
-});
 
 export const getRouter = (subDir?: string) => {
   return new Bun.FileSystemRouter({

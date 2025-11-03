@@ -18,7 +18,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
     <header class="w-full mx-auto p-4 sticky top-0 backdrop-blur-md z-50">
       <div class="max-w-3xl mx-auto flex flex-wrap md:flex-nowrap handwriting">
         <Link
-          class="no-underline text-4xl w-full text-center md:text-left mb-6 md:mb-0"
+          class="no-underline text-3xl font-semibold w-full text-center md:text-left mb-6 md:mb-0"
           href="/"
         >
           Alexandre&nbsp;Dos&nbsp;Reis
