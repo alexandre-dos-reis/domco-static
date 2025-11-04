@@ -3,7 +3,7 @@ import volvo from "@/server/assets/volvo.jpg";
 import finishers from "@/server/assets/finishers.jpg";
 import up from "@/server/assets/univers-paie.jpg";
 import gilleAgri from "@/server/assets/gille-agri.fr.png";
-import { setPageContext } from "@/server/storages";
+import { setPageContext } from "@/server/context";
 
 export default () => {
   setPageContext({ title: "Accueil" });

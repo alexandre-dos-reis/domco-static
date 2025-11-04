@@ -2,7 +2,7 @@ import type { PropsWithChildren } from "@kitajs/html";
 import { tags } from "client:script";
 import { Header } from "./components/Header";
 import { raw } from "hono/html";
-import { getPageContext } from "./storages";
+import { getPageContext } from "./context";
 
 export const Layout = ({
   children,
@@ -25,7 +25,7 @@ export const Layout = ({
         {disableSEO && <meta name="robots" content="noindex, nofollow" />}
         <title>Alexandre Dos Reis{title && ` | ${title}`}</title>
         {raw(tags)}
-        {headTags && raw(headTags)}
+        {headTags && headTags.map((tag) => raw(tag))}
       </head>
       <body class="flex flex-col justify-between">
         <Header pathname={pathname} />

@@ -1,6 +1,6 @@
 import { articles } from "@/server/articles";
 import { Link } from "@/server/components/Link";
-import { setPageContext } from "@/server/storages";
+import { setPageContext } from "@/server/context";
 import type { Page } from "@/server/types";
 import { ucFirst } from "@/server/utils";
 import { join } from "path";

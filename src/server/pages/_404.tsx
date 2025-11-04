@@ -1,4 +1,4 @@
-import { setPageContext } from "../storages";
+import { setPageContext } from "../context";
 
 export default () => {
   setPageContext({ title: "404", disableSEO: true });

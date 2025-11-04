@@ -3,8 +3,9 @@ import type { Page } from "@/server/types";
 import NotFound from "@/server/pages/_404";
 import { ActionPill } from "@/server/components/ActionPill";
 import { Frame } from "@/server/components/Frame";
-import { setPageContext } from "@/server/storages";
-import { tags } from "client:script/mdx";
+import { setPageContext } from "@/server/context";
+import { tags as mdxTags } from "client:script/mdx";
+import { Link } from "@/server/components/Link";
 
 export default async ({ params }: Page) => {
   const article = articles.find(
@@ -15,12 +16,12 @@ export default async ({ params }: Page) => {
     return <NotFound />;
   }
 
-  setPageContext({ title: article.frontmatter.title, headTags: tags });
+  setPageContext({ title: article.frontmatter.title, headTags: [mdxTags] });
 
   return (
     <div class="mdx">
       {JSON.stringify(article.frontmatter, null, 4)}
-      <article.component components={{ AP: ActionPill, Frame }} />
+      <article.component components={{ AP: ActionPill, Frame, a: Link }} />
     </div>
   );
 };

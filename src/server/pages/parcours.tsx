@@ -1,5 +1,5 @@
 import pictureId from "@/server/assets/photo-id.jpg";
-import { setPageContext } from "../storages";
+import { setPageContext } from "@/server/context";
 
 export default () => {
   setPageContext({ title: "Parcours" });
