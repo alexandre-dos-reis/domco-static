@@ -1,5 +1,5 @@
 import { Layout } from "./Layout";
-import { getRouter, sendHtml } from "./utils";
+import { sendHtml } from "./utils";
 
 import { join } from "path";
 import { pageContextRun } from "./storages";
@@ -11,7 +11,11 @@ export default {
     return pageContextRun(async () => {
       let { pathname } = new URL(req.url);
 
-      const router = getRouter();
+      const router = new Bun.FileSystemRouter({
+        style: "nextjs",
+        fileExtensions: [".tsx"],
+        dir: `src/server/pages`,
+      });
 
       const matchRoute = router.match(pathname);
 
