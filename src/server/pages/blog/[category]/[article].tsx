@@ -14,10 +14,10 @@ export default async ({ params }: Page) => {
     return <NotFound />;
   }
 
-  setPageContext({ title: article?.frontmatter.title });
+  setPageContext({ title: article.frontmatter.title });
 
   return (
-    <div>
+    <div class="mdx">
       {JSON.stringify(article.frontmatter, null, 4)}
       <article.component components={{ AP: ActionPill, Frame }} />
     </div>
