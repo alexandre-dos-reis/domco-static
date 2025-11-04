@@ -2,22 +2,25 @@ import type { PropsWithChildren } from "@kitajs/html";
 import { tags } from "client:script";
 import { Header } from "./components/Header";
 import { raw } from "hono/html";
+import { getPageContext } from "./storages";
 
 export const Layout = ({
   children,
-  title,
-  disableSEO,
   isFragment,
   pathname,
 }: PropsWithChildren<{
   isFragment: boolean;
-  title?: string;
-  disableSEO?: boolean;
   pathname: string;
-  date?: string;
 }>) => {
+  const { title, disableSEO } = getPageContext();
+
+  console.log({ pathname, title });
+
   const headTitle = (
-    <title>Alexandre Dos Reis | Portfolio & Blog{title && ` | ${title}`}</title>
+    <title>
+      Alexandre Dos Reis | Portfolio & Blog
+      {title && ` | ${title}`}
+    </title>
   );
 
   const content = (

@@ -1,10 +1,13 @@
 import { getArticles } from "@/server/articles";
 import { Link } from "@/server/components/Link";
-import type { Page, PageConfig } from "@/server/types";
+import { setPageContext } from "@/server/storages";
+import type { Page } from "@/server/types";
 import { ucFirst } from "@/server/utils";
 import { join } from "path";
 
 export default async ({ params }: Page) => {
+  setPageContext({ title: params.category || "Blog" });
+
   const articles = await getArticles();
 
   const categories = [

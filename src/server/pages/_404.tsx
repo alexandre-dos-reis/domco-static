@@ -1,5 +1,6 @@
-import type { PageConfig } from "../types";
+import { setPageContext } from "../storages";
 
-export const config = { title: "404", disableSEO: true } satisfies PageConfig;
-
-export default () => <div>Erreur 404</div>;
+export default () => {
+  setPageContext({ title: "404", disableSEO: true });
+  return <div>Erreur 404</div>;
+};

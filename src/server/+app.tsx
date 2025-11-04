@@ -4,41 +4,39 @@ import { getRouter, sendHtml } from "./utils";
 
 import { join } from "path";
 import { readdir } from "node:fs/promises";
+import { pageContextRun } from "./storages";
 
-const fetch = async (req: Request) => {
-  let { pathname } = new URL(req.url);
+const pages = import.meta.glob("/server/pages/**/*.tsx", { eager: true });
 
-  const isFragment =
-    !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
+const fetch = (req: Request) =>
+  pageContextRun(async () => {
+    let { pathname } = new URL(req.url);
 
-  pathname = pathname.replace(new RegExp(`^${FRAGMENT_PREFIX}`), "");
+    const isFragment =
+      !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
 
-  const router = getRouter();
+    pathname = pathname.replace(new RegExp(`^${FRAGMENT_PREFIX}`), "");
 
-  const matchRoute = router.match(pathname);
+    const router = getRouter();
 
-  if (!matchRoute) {
-    return sendHtml("404", { status: 404 });
-  }
+    const matchRoute = router.match(pathname);
 
-  const module = import.meta.glob("/server/pages/**/*.tsx", { eager: true })[
-    `/server/pages/${matchRoute.src}`
-  ] as {
-    default: (p: any) => Promise<JSX.Element>;
-  };
+    if (!matchRoute) {
+      return sendHtml("404", { status: 404 });
+    }
 
-  const rendered = await module.default({ params: matchRoute.params });
+    const module = pages[`/server/pages/${matchRoute.src}`] as {
+      default: (p: any) => Promise<JSX.Element>;
+    };
 
-  return sendHtml(
-    Layout({
-      isFragment,
-      title: undefined,
-      disableSEO: undefined,
-      pathname,
-      children: rendered,
-    }),
-  );
-};
+    const rendered = await module.default({ params: matchRoute.params });
+
+    return sendHtml(
+      <Layout isFragment={isFragment} pathname={pathname}>
+        {rendered}
+      </Layout>,
+    );
+  });
 
 export default {
   fetch,
