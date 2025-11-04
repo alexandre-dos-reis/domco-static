@@ -30,7 +30,7 @@ export default async ({ params }: Page) => {
   ).default;
 
   return (
-    <div class="mdx">
+    <>
       <section class="relative flex justify-center items-center h-84 md:h-120 mb-4">
         <div class="p-2 z-40">
           <div class="w-full text-center text-gray-300 text-sm md:text-xl mb-4">
@@ -41,10 +41,12 @@ export default async ({ params }: Page) => {
         <img
           src={headImgSrc}
           alt={article.frontmatter.title}
-          class="absolute top-0 h-full w-full object-cover opacity-40 shadow-xl/30"
+          class="absolute top-0 h-full w-full object-cover opacity-40 shadow-xl/30 rounded-lg"
         />
       </section>
-      <article.component components={{ AP: ActionPill, Frame, a: Link }} />
-    </div>
+      <div class="mdx">
+        <article.component components={{ AP: ActionPill, Frame, a: Link }} />
+      </div>
+    </>
   );
 };
