@@ -3,6 +3,7 @@ import { tags } from "client:script/main";
 import { Header } from "./components/Header";
 import { raw } from "hono/html";
 import { getPageContext } from "./context";
+import { Link } from "./components/Link";
 
 export const Layout = ({
   children,
@@ -32,6 +33,18 @@ export const Layout = ({
         <main class={`max-w-3xl mx-auto px-8 mt-16`} id="main">
           {children}
         </main>
+        <footer class="mt-16 text-center text-gray-500">
+          <section>
+            <p>
+              Site propulsé 🚀 par{" "}
+              <Link href="https://domco.robino.dev">Domco</Link> |{" "}
+              <Link href="https://github.com/alexandre-dos-reis/domco-static">
+                Code source
+              </Link>
+            </p>
+            <p>©️ 2026 | Tous droits réservés</p>
+          </section>
+        </footer>
       </body>
     </html>
   );

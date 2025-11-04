@@ -2,11 +2,17 @@ import { articles } from "@/server/articles";
 import { Link } from "@/server/components/Link";
 import { setPageContext } from "@/server/context";
 import type { Page } from "@/server/types";
-import { ucFirst } from "@/server/utils";
+import { unslugify } from "@/server/utils";
 import { join } from "path";
 
 export default async ({ params }: Page) => {
-  setPageContext({ title: params.category || "Blog" });
+  const category = params.category ? unslugify(params.category) : undefined;
+
+  setPageContext({ title: category || "Blog" });
+
+  let localArticles = params.category
+    ? articles.filter((a) => a.category === params.category)
+    : articles;
 
   const categories = [
     ...new Map(articles.map((a) => [a.category, a])).values(),
@@ -28,25 +34,25 @@ export default async ({ params }: Page) => {
                 class="text-gray-800 text-sm"
                 href={join("/blog", c.category)}
               >
-                {ucFirst(c.category)}
+                {unslugify(c.category)}
               </Link>
             </li>
           ))}
         </ul>
       </section>
       <section>
-        <h2>{articles.length} Publications 📃</h2>{" "}
+        <h2>
+          {localArticles.length} Publications 📃
+          {category && ` pour la catégorie ${category}`}
+        </h2>{" "}
         <ul class="list-none">
-          {(params.category
-            ? articles.filter((a) => a.category === params.category)
-            : articles
-          ).map((a) => (
+          {localArticles.map((a) => (
             <li class="flex gap-x-10">
               <time class="text-gray-500 whitespace-nowrap">
                 {a.frontmatter.date}
               </time>
               <Link href={join("/blog", a.category, a.article)}>
-                {a.article}
+                {a.frontmatter.title}
               </Link>
             </li>
           ))}

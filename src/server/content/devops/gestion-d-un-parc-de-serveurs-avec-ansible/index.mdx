@@ -26,7 +26,7 @@ Ansible est une plate-forme logicielle libre pour la configuration et la gestion
 
 Comme nous n'avons pas de DNS, le fichiers _hosts_ sera utilisé pour indiquer les différentes adresses et leur résolution sur le serveur Ansible. Voilà le contenu du fichier _/etc/hosts_ :
 
-```make
+```yaml
 127.0.0.1       localhost
 127.0.1.1       ansible
 
@@ -207,28 +207,31 @@ Voilà une première commande qui va changer quelque chose sur nos serveurs. Le 
 
 Cette commande devrait échouer :
 
-ansible all -m apt -a update_cache=true
+<AP>ansible all -m apt -a update_cache=true</AP>
 
 Il faut donc la changer pour :
+<AP>
 ansible all -m apt -a update*cache=true --become --ask-become-pass --become-method=su
 --become : utilise le compte root pour toutes les machines
 --ask-become-pass : Demande l'utilisation d'un mot de passe
 --become-method : Méthode d'authentification ici \_su*
+</AP>
 
 Voici la même commande en plus court :
 
-ansible all -m apt -a update_cache=true -b -K --become-method=su
+
+<AP>ansible all -m apt -a update_cache=true -b -K --become-method=su</AP>
 
 Voici la commande pour installer sudo sur tous nos serveurs :
 
-ansible all -m apt -a name=sudo -b -K --become-method=su
+<AP>ansible all -m apt -a name=sudo -b -K --become-method=su</AP>
 
--m spécifie le module à utiliser spécifique à ansible, ici apt
--a spécifie un argument pour le module, ici name=sudo
+`-m` spécifie le module à utiliser spécifique à ansible, ici apt
+`-a` spécifie un argument pour le module, ici name=sudo
 
 voilà la réponse :
 
-```make
+```yaml
 web1 | CHANGED => {
     "ansible_facts": {
         "discovered_interpreter_python": "/usr/bin/python"
@@ -284,11 +287,11 @@ web1 | CHANGED => {
 
 On va mettre à jour le paquet python3.7 sur tous nos serveurs avec une commande Ansible :
 
-ansible all -m apt -a "name=python3.7 state=latest" -b -K --become-method=su
+<AP>ansible all -m apt -a "name=python3.7 state=latest" -b -K --become-method=su</AP>
 
 Pour mettre à jour tous les paquets disponibles :
 
-ansible all -m apt -a "upgrade=dist" -b -K --become-method=su
+<AP>ansible all -m apt -a "upgrade=dist" -b -K --become-method=su</AP>
 
 ## Playbook
 
@@ -316,11 +319,11 @@ Nous allons créer un playbook pour installer Apache2 sur nos 2 serveurs :
 
 ### Execution d'un playbook
 
-ansible-playbook -b -K --become-method=su playbooks/webServers.yml
+<AP>ansible-playbook -b -K --become-method=su playbooks/webServers.yml</AP>
 
 Voilà la sortie de cette commande :
 
-```make
+```yaml
 PLAY [webServers] ********************************************************************************************************************
 
 TASK [Gathering Facts] ***************************************************************************************************************

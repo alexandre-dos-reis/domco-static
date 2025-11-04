@@ -9,3 +9,10 @@ export const sendHtml = (
 
 export const ucFirst = (word: string) =>
   word.charAt(0).toUpperCase() + word.slice(1);
+
+export function unslugify(slug: string) {
+  const result = slug.replace(/\-/g, " ");
+  return result.replace(/\w\S*/g, function (txt) {
+    return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+  });
+}
