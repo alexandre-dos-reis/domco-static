@@ -3,10 +3,9 @@ import { FRAGMENT_PREFIX } from "./contants";
 import { getRouter, sendHtml } from "./utils";
 
 import { join } from "path";
-import { readdir } from "node:fs/promises";
 import { pageContextRun } from "./storages";
-
-const pages = import.meta.glob("/server/pages/**/*.tsx", { eager: true });
+import { articles } from "./articles";
+import NotFoundPage from "./pages/_404";
 
 const fetch = (req: Request) =>
   pageContextRun(async () => {
@@ -22,18 +21,25 @@ const fetch = (req: Request) =>
     const matchRoute = router.match(pathname);
 
     if (!matchRoute) {
-      return sendHtml("404", { status: 404 });
+      return sendHtml(
+        <Layout isFragment={isFragment} pathname={pathname}>
+          <NotFoundPage />
+        </Layout>,
+        { status: 404 },
+      );
     }
 
-    const module = pages[`/server/pages/${matchRoute.src}`] as {
+    const module = import.meta.glob("/server/pages/**/*.tsx", { eager: true })[
+      `/server/pages/${matchRoute.src}`
+    ] as {
       default: (p: any) => Promise<JSX.Element>;
     };
 
-    const rendered = await module.default({ params: matchRoute.params });
+    const page = await module.default({ params: matchRoute.params });
 
     return sendHtml(
       <Layout isFragment={isFragment} pathname={pathname}>
-        {rendered}
+        {page}
       </Layout>,
     );
   });
@@ -41,26 +47,19 @@ const fetch = (req: Request) =>
 export default {
   fetch,
   prerender: async () => {
-    const articles = (
-      await readdir("./src/server/content", {
-        recursive: true,
-      })
-    )
-      .filter((p) => p.endsWith(".mdx"))
-      .map((p) => p.replace("/index.mdx", ""));
-
     const categories = [
-      ...new Map(
-        articles.map((c) => c.replace(/\/.*$/, "")).map((a) => [a, a]),
-      ).values(),
+      ...new Map(articles.map((a) => [a.category, a])).values(),
     ];
 
-    return [
+    const routes = [
+      "/_404",
       "/",
       "/parcours",
       "/blog",
-      ...categories.map((c) => join("/blog", c)),
-      ...articles.map((a) => join("/blog", a)),
+      ...categories.map((c) => join("/blog", c.category)),
+      ...articles.map((a) => join("/blog", a.category, a.article)),
     ];
+
+    return [...routes, ...routes.map((r) => join(FRAGMENT_PREFIX, r))];
   },
 };

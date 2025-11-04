@@ -1,5 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { PageConfig } from "./types";
+
+type PageConfig = {
+  title?: string;
+  disableSEO?: boolean;
+};
 
 const pageContext = new AsyncLocalStorage<PageConfig>();
 

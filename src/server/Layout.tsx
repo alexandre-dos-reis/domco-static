@@ -14,14 +14,7 @@ export const Layout = ({
 }>) => {
   const { title, disableSEO } = getPageContext();
 
-  console.log({ pathname, title });
-
-  const headTitle = (
-    <title>
-      Alexandre Dos Reis | Portfolio & Blog
-      {title && ` | ${title}`}
-    </title>
-  );
+  const headTitle = <title>Alexandre Dos Reis{title && ` | ${title}`}</title>;
 
   const content = (
     <main class={`max-w-3xl mx-auto px-8 mt-16`} id="main">

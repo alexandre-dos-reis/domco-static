@@ -1,4 +1,4 @@
-import { getArticles } from "@/server/articles";
+import { articles } from "@/server/articles";
 import { Link } from "@/server/components/Link";
 import { setPageContext } from "@/server/storages";
 import type { Page } from "@/server/types";
@@ -7,8 +7,6 @@ import { join } from "path";
 
 export default async ({ params }: Page) => {
   setPageContext({ title: params.category || "Blog" });
-
-  const articles = await getArticles();
 
   const categories = [
     ...new Map(articles.map((a) => [a.category, a])).values(),
