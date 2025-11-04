@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "@kitajs/html";
-import { tags } from "client:script";
+import { tags } from "client:script/main";
 import { Header } from "./components/Header";
 import { raw } from "hono/html";
 import { getPageContext } from "./context";

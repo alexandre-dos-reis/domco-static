@@ -85,7 +85,7 @@ li {
 
 @font-face {
   font-family: "dancing";
-  src: url("/client/DancingScript.ttf");
+  src: url("./DancingScript.ttf");
 }
 
 .handwriting {

@@ -4,7 +4,7 @@ import NotFound from "@/server/pages/_404";
 import { ActionPill } from "@/server/components/ActionPill";
 import { Frame } from "@/server/components/Frame";
 import { setPageContext } from "@/server/context";
-import { tags as mdxTags } from "client:script/mdx";
+import { tags } from "client:script/mdx";
 import { Link } from "@/server/components/Link";
 
 export default async ({ params }: Page) => {
@@ -16,7 +16,10 @@ export default async ({ params }: Page) => {
     return <NotFound />;
   }
 
-  setPageContext({ title: article.frontmatter.title, headTags: [mdxTags] });
+  setPageContext({
+    title: article.frontmatter.title,
+    headTags: [tags],
+  });
 
   return (
     <div class="mdx">
