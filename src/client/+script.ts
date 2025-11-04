@@ -4,7 +4,5 @@ import "./fixi-ext-head";
 import "./fixi-ext-select";
 
 import "./handle-menu-navigation";
-import "./handle-copy";
 
-import "@wooorm/starry-night/style/both";
 import "./styles.css";

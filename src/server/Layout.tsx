@@ -10,7 +10,7 @@ export const Layout = ({
 }: PropsWithChildren<{
   pathname: string;
 }>) => {
-  const { title, disableSEO } = getPageContext();
+  const { title, disableSEO, headTags } = getPageContext();
 
   return (
     <html lang="fr">
@@ -25,6 +25,7 @@ export const Layout = ({
         {disableSEO && <meta name="robots" content="noindex, nofollow" />}
         <title>Alexandre Dos Reis{title && ` | ${title}`}</title>
         {raw(tags)}
+        {headTags && raw(headTags)}
       </head>
       <body class="flex flex-col justify-between">
         <Header pathname={pathname} />
