@@ -6,30 +6,11 @@ import { getPageContext } from "./storages";
 
 export const Layout = ({
   children,
-  isFragment,
   pathname,
 }: PropsWithChildren<{
-  isFragment: boolean;
   pathname: string;
 }>) => {
   const { title, disableSEO } = getPageContext();
-
-  const headTitle = <title>Alexandre Dos Reis{title && ` | ${title}`}</title>;
-
-  const content = (
-    <main class={`max-w-3xl mx-auto px-8 mt-16`} id="main">
-      {children}
-    </main>
-  );
-
-  if (isFragment) {
-    return (
-      <>
-        <head>{headTitle}</head>
-        {content}
-      </>
-    );
-  }
 
   return (
     <html lang="fr">
@@ -42,12 +23,14 @@ export const Layout = ({
           href={`https://alexandre-dosreis.me${!pathname?.startsWith("/") ? `/${pathname}` : pathname}`}
         />
         {disableSEO && <meta name="robots" content="noindex, nofollow" />}
-        {headTitle}
+        <title>Alexandre Dos Reis{title && ` | ${title}`}</title>
         {raw(tags)}
       </head>
       <body class="flex flex-col justify-between">
         <Header pathname={pathname} />
-        {content}
+        <main class={`max-w-3xl mx-auto px-8 mt-16`} id="main">
+          {children}
+        </main>
       </body>
     </html>
   );

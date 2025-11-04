@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { FRAGMENT_PREFIX } from "./src/server/contants.js";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import sirv from "sirv";
@@ -40,9 +39,4 @@ const serveAssets = sirv("dist/client", {
 
 console.log(`Server listening on http://localhost:3000`);
 
-createServer((req, res) => {
-  if (req.headers["fx-request"]) {
-    req.url = join(FRAGMENT_PREFIX, String(req.url));
-  }
-  return serveAssets(req, res);
-}).listen(3000);
+createServer((req, res) => serveAssets(req, res)).listen(3000);

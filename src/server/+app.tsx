@@ -1,5 +1,4 @@
 import { Layout } from "./Layout";
-import { FRAGMENT_PREFIX } from "./contants";
 import { getRouter, sendHtml } from "./utils";
 
 import { join } from "path";
@@ -11,18 +10,13 @@ const fetch = (req: Request) =>
   pageContextRun(async () => {
     let { pathname } = new URL(req.url);
 
-    const isFragment =
-      !!req.headers.get("Fx-Request") || pathname.startsWith(FRAGMENT_PREFIX);
-
-    pathname = pathname.replace(new RegExp(`^${FRAGMENT_PREFIX}`), "");
-
     const router = getRouter();
 
     const matchRoute = router.match(pathname);
 
     if (!matchRoute) {
       return sendHtml(
-        <Layout isFragment={isFragment} pathname={pathname}>
+        <Layout pathname={pathname}>
           <NotFoundPage />
         </Layout>,
         { status: 404 },
@@ -37,11 +31,7 @@ const fetch = (req: Request) =>
 
     const page = await module.default({ params: matchRoute.params });
 
-    return sendHtml(
-      <Layout isFragment={isFragment} pathname={pathname}>
-        {page}
-      </Layout>,
-    );
+    return sendHtml(<Layout pathname={pathname}>{page}</Layout>);
   });
 
 export default {
@@ -51,7 +41,7 @@ export default {
       ...new Map(articles.map((a) => [a.category, a])).values(),
     ];
 
-    const routes = [
+    return [
       "/_404",
       "/",
       "/parcours",
@@ -59,7 +49,5 @@ export default {
       ...categories.map((c) => join("/blog", c.category)),
       ...articles.map((a) => join("/blog", a.category, a.article)),
     ];
-
-    return [...routes, ...routes.map((r) => join(FRAGMENT_PREFIX, r))];
   },
 };
