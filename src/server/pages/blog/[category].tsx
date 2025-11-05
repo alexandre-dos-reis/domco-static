@@ -1,4 +1,4 @@
-import { articles } from "@/server/articles";
+import { getArticles } from "@/server/articles";
 import { Link } from "@/server/components/Link";
 import { setPageContext } from "@/server/context";
 import type { Page } from "@/server/types";
@@ -10,9 +10,11 @@ export default async ({ params }: Page) => {
 
   setPageContext({ title: category || "Blog" });
 
-  let localArticles = params.category
-    ? articles.filter((a) => a.category === params.category)
-    : articles;
+  let articles = await getArticles();
+
+  if (params.category) {
+    articles = articles.filter((a) => a.category === params.category);
+  }
 
   const categories = [
     ...new Map(articles.map((a) => [a.category, a])).values(),
@@ -42,11 +44,11 @@ export default async ({ params }: Page) => {
       </section>
       <section>
         <h2>
-          {localArticles.length} Publications 📃
+          {articles.length} Publications 📃
           {category && ` pour la catégorie ${category}`}
         </h2>{" "}
         <ul class="list-none">
-          {localArticles.map((a) => (
+          {articles.map((a) => (
             <li class="flex gap-x-10">
               <time class="text-gray-500 whitespace-nowrap">
                 {a.frontmatter.date}

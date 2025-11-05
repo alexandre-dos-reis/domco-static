@@ -9,37 +9,38 @@ const frontmatterSchema = z.object({
 
 export type Frontmatter = z.infer<typeof frontmatterSchema>;
 
-export const articles = (
-  await Promise.all(
-    Object.entries(import.meta.glob("/server/content/**/*.mdx")).map(
-      async ([entry, module]) => {
-        const categoryAndArticle = entry.replace(
-          /^\/server\/content\/|\/index\.mdx$/g,
-          "",
-        );
-        const mod = await module();
-        const [category, article] = categoryAndArticle.split("/");
+export const getArticles = async () =>
+  (
+    await Promise.all(
+      Object.entries(import.meta.glob("/server/content/**/*.mdx")).map(
+        async ([entry, module]) => {
+          const categoryAndArticle = entry.replace(
+            /^\/server\/content\/|\/index\.mdx$/g,
+            "",
+          );
+          const mod = await module();
+          const [category, article] = categoryAndArticle.split("/");
 
-        const frontmatter = z.parse(
-          frontmatterSchema,
-          // @ts-expect-error
-          mod.frontmatter,
-        );
+          const frontmatter = z.parse(
+            frontmatterSchema,
+            // @ts-expect-error
+            mod.frontmatter,
+          );
 
-        if (frontmatter.draft) {
-          return null!;
-        }
+          if (frontmatter.draft) {
+            return null!;
+          }
 
-        return {
-          frontmatter,
-          // @ts-expect-error
-          component: mod.default as (p: {
-            components: Record<string, (props: any) => JSX.Element>;
-          }) => JSX.Element,
-          category: category || "",
-          article: article || "",
-        };
-      },
-    ),
-  )
-).filter(Boolean);
+          return {
+            frontmatter,
+            // @ts-expect-error
+            component: mod.default as (p: {
+              components: Record<string, (props: any) => JSX.Element>;
+            }) => JSX.Element,
+            category: category || "",
+            article: article || "",
+          };
+        },
+      ),
+    )
+  ).filter(Boolean);

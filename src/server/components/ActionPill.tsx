@@ -1,4 +1,6 @@
 import type { Children } from "@kitajs/html";
+import { setPageContext } from "../context";
+import { tags } from "client:script/action-pill";
 
 export const ActionPill = ({
   a,
@@ -7,10 +9,11 @@ export const ActionPill = ({
   children: Children;
   a?: string;
 }) => {
+  setPageContext({ headTags: [tags] });
   return (
     <div
       class="relative action-pill cursor-pointer"
-      onclick="window.handleCopy(this)"
+      onclick="window.actionPill(this)"
     >
       <div class=" absolute inset-y-0 right-3 z-1 p-2">
         <div class="bg-slate-900">

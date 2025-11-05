@@ -1,4 +1,4 @@
-window.handleCopy = (divElement: HTMLDivElement) => {
+window.actionPill = (divElement: HTMLDivElement) => {
   const codeElement = divElement.querySelector("code");
 
   if (!divElement || !codeElement || !codeElement.innerHTML) return;

@@ -1,4 +1,4 @@
-import { articles } from "@/server/articles";
+import { getArticles } from "@/server/articles";
 import type { Page } from "@/server/types";
 import NotFound from "@/server/pages/_404";
 import { ActionPill } from "@/server/components/ActionPill";
@@ -8,6 +8,8 @@ import { tags } from "client:script/mdx";
 import { Link } from "@/server/components/Link";
 
 export default async ({ params }: Page) => {
+  const articles = await getArticles();
+
   const article = articles.find(
     (a) => a.article === params.article && a.category === params.category,
   );

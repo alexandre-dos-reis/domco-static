@@ -8,18 +8,26 @@ type PageConfig = {
 
 const pageContext = new AsyncLocalStorage<PageConfig>();
 
-export const pageContextRun = <T extends () => unknown>(handler: T) => {
-  return pageContext.run(
-    { disableSEO: false, title: undefined, headTags: undefined },
-    handler,
-  );
+const initialStore: PageConfig = {
+  disableSEO: false,
+  title: undefined,
+  headTags: [],
+};
+
+export const pageContextInit = <T extends () => unknown>(handler: T) => {
+  return pageContext.run(initialStore, async () => {
+    // HACK: This is a hack because asyncLocaleStorage context is not fully propagated
+    pageContext.enterWith(initialStore);
+    return handler();
+  });
 };
 
 export const getPageContext = () => pageContext.getStore()!;
 
 export const setPageContext = (newConfig: PageConfig) => {
-  pageContext.enterWith({
-    ...getPageContext(),
-    ...newConfig,
-  });
+  const store = pageContext.getStore()!;
+
+  store.title = newConfig.title || store.title;
+  store.disableSEO = newConfig.disableSEO || store.disableSEO;
+  store.headTags = [...(store.headTags ?? []), ...(newConfig.headTags ?? [])];
 };

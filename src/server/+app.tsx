@@ -2,13 +2,13 @@ import { Layout } from "./Layout";
 import { sendHtml } from "./utils";
 
 import { join } from "path";
-import { pageContextRun } from "./context";
-import { articles } from "./articles";
+import { pageContextInit } from "./context";
+import { getArticles } from "./articles";
 import NotFoundPage from "./pages/_404";
 
 export default {
   fetch: (req: Request) => {
-    return pageContextRun(async () => {
+    return pageContextInit(async () => {
       let { pathname } = new URL(req.url);
 
       const router = new Bun.FileSystemRouter({
@@ -40,6 +40,7 @@ export default {
     });
   },
   prerender: async () => {
+    const articles = await getArticles();
     const categories = [
       ...new Map(articles.map((a) => [a.category, a])).values(),
     ];

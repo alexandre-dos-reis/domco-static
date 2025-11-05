@@ -12,13 +12,12 @@ export const Layout = ({
   pathname: string;
 }>) => {
   const { title, disableSEO, headTags } = getPageContext();
-
+  const moreHeadTags = [...new Set(headTags)];
   return (
     <html lang="fr">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
         <link
           rel="canonical"
           href={`https://alexandre-dosreis.me${!pathname?.startsWith("/") ? `/${pathname}` : pathname}`}
@@ -26,7 +25,7 @@ export const Layout = ({
         {disableSEO && <meta name="robots" content="noindex, nofollow" />}
         <title>Alexandre Dos Reis{title && ` | ${title}`}</title>
         {raw(tags)}
-        {headTags && headTags.map((tag) => raw(tag))}
+        {moreHeadTags && moreHeadTags.map((tag) => raw(tag))}
       </head>
       <body class="flex flex-col justify-between">
         <Header pathname={pathname} />
