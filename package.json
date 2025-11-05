@@ -14,21 +14,25 @@
     "sirv": "^3.0.2"
   },
   "devDependencies": {
-    "hono": "^4.10.4",
-    "@types/bun": "^1.3.0",
-    "domco": "^4.5.2",
-    "typescript": "^5.9.0",
-    "vite": "^7.1.12",
-    "vite-plugin-compression2": "^2.3.0",
     "@mdx-js/rollup": "^3.1.1",
     "@tailwindcss/vite": "^4.1.15",
+    "@types/bun": "^1.3.0",
     "@wooorm/starry-night": "^3.8.0",
+    "domco": "^4.5.2",
+    "hono": "^4.10.4",
+    "htmx-ext-head-support": "^2.0.5",
+    "htmx-ext-preload": "^2.1.2",
+    "htmx.org": "2.0.8",
     "rehype-starry-night": "^2.2.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.1",
     "remark-mdx-frontmatter": "^5.2.0",
     "remark-mdx-images": "^3.0.0",
     "tailwindcss": "^4.1.15",
+    "typed-htmx": "^0.3.1",
+    "typescript": "^5.9.0",
+    "vite": "^7.1.12",
+    "vite-plugin-compression2": "^2.3.0",
     "zod": "^4.1.12"
   }
 }

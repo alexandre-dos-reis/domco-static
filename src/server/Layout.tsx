@@ -28,9 +28,9 @@ export const Layout = ({
         {raw(tags)}
         {headTags && headTags.map((tag) => raw(tag))}
       </head>
-      <body class="flex flex-col justify-between">
+      <body hx-ext="preload,head-support" class="flex flex-col justify-between">
         <Header pathname={pathname} />
-        <main class={`max-w-3xl mx-auto px-8 mt-16`} id="main">
+        <main id="main" hx-history-elt class="max-w-3xl mx-auto px-8 mt-16">
           {children}
         </main>
         <footer class="mt-16 text-center text-gray-500">

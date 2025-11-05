@@ -10,12 +10,12 @@ export const Link = (props: JSX.HtmlAnchorTag) => {
   return (
     <a
       {...props}
-      fx-method="get"
-      fx-action={props.href}
-      fx-trigger="click"
-      fx-target="#main"
-      fx-swap="outerHTML"
-      fx-push-url
+      hx-get={props.href}
+      hx-trigger="click"
+      hx-target="#main"
+      hx-select="#main"
+      hx-swap="outerHTML"
+      hx-push-url
     />
   );
 };
