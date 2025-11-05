@@ -36,12 +36,6 @@ export const Layout = ({
         <main class="max-w-3xl mx-auto px-8 mt-16" id="main">
           {children}
         </main>
-        <iframe
-          src={pathname}
-          hidden
-          name="#main"
-          onload="window.htmz?.(this)"
-        ></iframe>
         <footer class="mt-16 text-center text-gray-500">
           <section>
             <p>
