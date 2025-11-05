@@ -6,13 +6,13 @@ type PageConfig = {
   headTags?: Array<string>;
 };
 
-const pageContext = new AsyncLocalStorage<PageConfig>();
-
 const initialStore: PageConfig = {
   disableSEO: false,
   title: undefined,
   headTags: [],
 };
+
+const pageContext = new AsyncLocalStorage<PageConfig>();
 
 export const pageContextInit = <T extends () => unknown>(handler: T) => {
   return pageContext.run(initialStore, async () => {
@@ -33,7 +33,7 @@ export const getPageContext = () => {
 };
 
 export const setPageContext = (newConfig: PageConfig) => {
-  const store = pageContext.getStore()!;
+  const store = getPageContext();
 
   store.title = newConfig.title || store.title;
   store.disableSEO = newConfig.disableSEO || store.disableSEO;
