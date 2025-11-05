@@ -30,7 +30,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
                 <Link
                   href={n.href}
                   class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
-                  onclick="window.handleMenuNavigation(this)"
+                  // onclick="window.handleMenuNavigation(this)"
                 >
                   {" "}
                   {n.label}{" "}
