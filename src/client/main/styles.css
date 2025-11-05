@@ -4,6 +4,15 @@
   navigation: auto;
 }
 
+img::view-transition-old(*),
+img::view-transition-new(*),
+a::view-transition-old(*),
+a::view-transition-new(*),
+h1::view-transition-old(*),
+h1::view-transition-new(*) {
+  animation: fade-zoom 0.5s ease-in-out both;
+}
+
 body {
   @apply overflow-y-scroll;
 }

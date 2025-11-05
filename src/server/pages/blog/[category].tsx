@@ -1,4 +1,4 @@
-import { getArticles } from "@/server/articles";
+import { getArticles, getImageArticle } from "@/server/articles";
 import { Link } from "@/server/components/Link";
 import { setPageContext } from "@/server/context";
 import type { Page } from "@/server/types";
@@ -49,13 +49,27 @@ export default async ({ params }: Page) => {
         </h2>{" "}
         <ul class="list-none">
           {articles.map((a) => (
-            <li class="flex gap-x-10">
-              <time class="text-gray-500 whitespace-nowrap">
-                {a.frontmatter.date}
-              </time>
+            <li class="flex items-center gap-x-5">
               <Link href={join("/blog", a.category, a.article)}>
-                {a.frontmatter.title}
+                <img
+                  style={`view-transition-name: ${a.category}-${a.article}-img;`}
+                  class="w-48 h-auto rounded"
+                  src={getImageArticle(a.category, a.article)}
+                />
               </Link>
+              <div>
+                <Link
+                  href={join("/blog", a.category, a.article)}
+                  style={`view-transition-name: ${a.category}-${a.article}-title;`}
+                >
+                  {a.frontmatter.title}
+                </Link>
+                <div>
+                  <time class="text-gray-500 whitespace-nowrap">
+                    {a.frontmatter.date}
+                  </time>
+                </div>
+              </div>
             </li>
           ))}
         </ul>

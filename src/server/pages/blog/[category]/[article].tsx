@@ -32,9 +32,15 @@ export default async ({ params }: Page) => {
           <div class="w-full text-center text-gray-300 text-sm md:text-xl mb-4">
             Publié le {article.frontmatter.date}
           </div>
-          <h1 class="w-full text-center px-4">{article.frontmatter.title}</h1>
+          <h1
+            class="w-full text-center px-4"
+            style={`view-transition-name: ${article.category}-${article.article}-title;`}
+          >
+            {article.frontmatter.title}
+          </h1>
         </div>
         <img
+          style={`view-transition-name: ${article.category}-${article.article}-img;`}
           src={headImgSrc}
           alt={article.frontmatter.title}
           class="absolute top-0 h-full w-full object-cover opacity-40 shadow-xl/30 rounded-lg"
