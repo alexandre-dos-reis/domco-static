@@ -4,7 +4,6 @@ window.mergeHead = (
 ) => {
   if (newContent && newContent.indexOf("<head") > -1) {
     const htmlDoc = document.createElement("html");
-    console.log("ok");
     // remove svgs to avoid conflicts
     var contentWithSvgsRemoved = newContent.replace(
       /<svg(\s[^>]*>|>)([\s\S]*?)<\/svg>/gim,

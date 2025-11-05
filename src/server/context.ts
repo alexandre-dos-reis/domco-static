@@ -29,5 +29,7 @@ export const setPageContext = (newConfig: PageConfig) => {
 
   store.title = newConfig.title || store.title;
   store.disableSEO = newConfig.disableSEO || store.disableSEO;
-  store.headTags = [...(store.headTags ?? []), ...(newConfig.headTags ?? [])];
+  store.headTags = [
+    ...new Set([...(store.headTags ?? []), ...(newConfig.headTags ?? [])]),
+  ];
 };

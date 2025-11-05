@@ -12,7 +12,6 @@ export const Layout = ({
   pathname: string;
 }>) => {
   const { title, disableSEO, headTags } = getPageContext();
-  const moreHeadTags = [...new Set(headTags)];
   return (
     <html lang="fr">
       <head>
@@ -25,7 +24,7 @@ export const Layout = ({
         {disableSEO && <meta name="robots" content="noindex, nofollow" />}
         <title>Alexandre Dos Reis{title && ` | ${title}`}</title>
         {raw(tags)}
-        {moreHeadTags && moreHeadTags.map((tag) => raw(tag))}
+        {headTags && headTags.map((tag) => raw(tag))}
       </head>
       <body class="flex flex-col justify-between">
         <Header pathname={pathname} />
