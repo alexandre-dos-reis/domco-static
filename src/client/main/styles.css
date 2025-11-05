@@ -92,7 +92,7 @@ ul {
   @apply list-disc;
 }
 
-li {
+li:not(header li) {
   @apply mb-3;
 }
 

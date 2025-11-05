@@ -24,9 +24,9 @@ export const Header = ({ pathname }: { pathname: string }) => {
           Alexandre&nbsp;Dos&nbsp;Reis
         </Link>
         <nav class="w-full">
-          <ul class="flex w-full h-full list-none justify-center md:justify-end">
+          <ul class="flex w-full h-full list-none items-center justify-center md:justify-end">
             {navLinks.map((n, i) => (
-              <li class="flex justify-center items-end m-0">
+              <li class="flex justify-center items-end">
                 <Link
                   href={n.href}
                   class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
