@@ -13,17 +13,18 @@ export default () => {
         />
       </section>
       <section>
-        <h2>Parcours Pro</h2>
+        <h2>Parcours Professionnel</h2>
         <p>
-          Après mon lycée dans le Val d'Oise. J'ai été diplomé en 2011 de{" "}
+          Après avoir terminé mon lycée dans le Val-d’Oise, j’ai obtenu en 2011
+          mon diplôme de{" "}
           <a
             href="https://www.esra.edu"
             target="_blank"
             rel="noreferrer noopener"
           >
-            l'ESRA
+            l’ESRA
           </a>{" "}
-          Paris et j'ai travaillé pendant 7 années pour{" "}
+          Paris. J’ai ensuite travaillé pendant sept ans au sein de{" "}
           <a
             href="https://www.gum.paris"
             target="_blank"
@@ -31,7 +32,7 @@ export default () => {
           >
             Green United Music
           </a>{" "}
-          et{" "}
+          et de{" "}
           <a
             href="https://prod.generalpop.com/fr"
             target="_blank"
@@ -39,13 +40,14 @@ export default () => {
           >
             Pop Productions
           </a>{" "}
-          dans la production sonore en tant qu'ingénieur du son.
+          en tant qu’ingénieur du son, dans le domaine de la production sonore.
         </p>
         <p>
-          En 2019, j'ai décidé d'effectuer une reconversion professionelle en
-          informatique et j'ai débuté un{" "}
-          <b>BTS Service Informatique aux Organisations Option Réseau</b> en
-          alternance à Caen. J'ai passé ces 2 années au sein d'
+          En 2019, j’ai choisi d’entreprendre une reconversion professionnelle
+          dans le domaine de l’informatique. J’ai ainsi débuté un{" "}
+          <b>BTS Services Informatiques aux Organisations – option Réseaux</b>{" "}
+          en alternance à Caen. Durant ces deux années, j’ai travaillé au sein
+          d’{" "}
           <a
             href="https://www.universpaie.com/"
             target="_blank"
@@ -59,14 +61,14 @@ export default () => {
             target="_blank"
             rel="noreferrer noopener"
           >
-            HR-Path
+            HR Path
           </a>{" "}
-          comme Technicien d'exploitation.
-        </p>{" "}
+          en tant que technicien d’exploitation.
+        </p>
         <p>
-          Puis en 2021, j'ai débuté une licence en{" "}
-          <b>Développement d'application Web &amp; Mobile</b> dispensée au lycée
-          Sup'Avenir à Caen. Cette formation est conduite par le{" "}
+          En 2021, j’ai poursuivi mon parcours avec une licence en{" "}
+          <b>Développement d’applications Web &amp; Mobile</b> dispensée au
+          lycée Sup’Avenir à Caen, en partenariat avec le{" "}
           <a
             href="https://www.cnam.fr"
             target="_blank"
@@ -74,7 +76,8 @@ export default () => {
           >
             CNAM
           </a>
-          . Durant cette année, j'ai été employé par{" "}
+          . Au cours de cette année, j’ai occupé le poste de développeur digital
+          &amp; IT chez{" "}
           <a
             href="https://www.volvotrucks.fr/fr-fr"
             target="_blank"
@@ -82,10 +85,10 @@ export default () => {
           >
             Volvo Trucks
           </a>{" "}
-          à Blainville-Sur-Orne en tant que Développeur digital &amp; IT.
-        </p>{" "}
+          à Blainville-sur-Orne.
+        </p>
         <p>
-          Le détail de mon parcours est disponible sur{" "}
+          Le détail complet de mon parcours est disponible sur{" "}
           <a
             href="https://fr.linkedin.com/in/Linklexandre-dos-reis-469708133"
             target="_blank"
