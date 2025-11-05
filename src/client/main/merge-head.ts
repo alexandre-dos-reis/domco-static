@@ -1,3 +1,4 @@
+// INFO: Taken from https://github.com/bigskysoftware/htmx-extensions/blob/main/src/head-support/head-support.js
 window.mergeHead = (
   newContent: string,
   defaultMergeStrategy: "merge" | "append",

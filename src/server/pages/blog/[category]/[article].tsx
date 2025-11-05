@@ -1,4 +1,4 @@
-import { getArticles } from "@/server/articles";
+import { getArticles, getImageArticle } from "@/server/articles";
 import type { Page } from "@/server/types";
 import NotFound from "@/server/pages/_404";
 import { ActionPill } from "@/server/components/ActionPill";
@@ -23,13 +23,7 @@ export default async ({ params }: Page) => {
     headTags: [tags],
   });
 
-  const headImgSrc = (
-    import.meta.glob("/server/content/**/head.jpg", {
-      eager: true,
-    })[`/server/content/${params.category}/${params.article}/head.jpg`] as {
-      default: string;
-    }
-  ).default;
+  const headImgSrc = getImageArticle(params.category, params.article);
 
   return (
     <>

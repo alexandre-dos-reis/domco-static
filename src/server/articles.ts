@@ -44,3 +44,14 @@ export const getArticles = async () =>
       ),
     )
   ).filter(Boolean);
+
+export const getImageArticle = (category?: string, article?: string) => {
+  if (!category || !article) return undefined;
+  return (
+    import.meta.glob("/server/content/**/head.jpg", {
+      eager: true,
+    })[`/server/content/${category}/${article}/head.jpg`] as {
+      default: string;
+    }
+  ).default;
+};
