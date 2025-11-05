@@ -29,6 +29,7 @@ window.mergeHead = (
       var nodesToAppend = [];
 
       htmlDoc.innerHTML = headTag.toString();
+
       var newHeadTag = htmlDoc.querySelector("head");
       var currentHead = document.head;
 
@@ -37,6 +38,7 @@ window.mergeHead = (
       } else {
         // put all new head elements into a Map, by their outerHTML
         var srcToNewHeadNodes = new Map();
+
         for (const newHeadChild of newHeadTag.children) {
           srcToNewHeadNodes.set(newHeadChild.outerHTML, newHeadChild);
         }

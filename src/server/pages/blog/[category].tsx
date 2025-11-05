@@ -12,13 +12,13 @@ export default async ({ params }: Page) => {
 
   let articles = await getArticles();
 
-  if (params.category) {
-    articles = articles.filter((a) => a.category === params.category);
-  }
-
   const categories = [
     ...new Map(articles.map((a) => [a.category, a])).values(),
   ];
+
+  if (params.category) {
+    articles = articles.filter((a) => a.category === params.category);
+  }
 
   return (
     <div>

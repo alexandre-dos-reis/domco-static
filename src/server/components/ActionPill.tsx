@@ -34,11 +34,10 @@ export const ActionPill = ({
           </svg>
         </div>
       </div>
-      <pre
-        data-prefix={a ?? "$"}
-        class="my-0 py-0 bg-base-300 whitespace-nowrap text-nowrap flex items-center justify-start"
-      >
-        <code class="pr-10">{children}</code>
+      <pre class="my-0 py-0 bg-base-300 whitespace-nowrap text-nowrap flex items-center justify-start">
+        <code class="pr-10">
+          <span class="text-gray-600">{a ?? "$"}</span> {children}
+        </code>
       </pre>
     </div>
   );
