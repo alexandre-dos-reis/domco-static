@@ -172,18 +172,11 @@ On se rend dans le dossier _/etc/proftpd_ pour créer les dossiers _ftpd.passwd_
 
 On crée l'utilisateur virtuel avec la commande _ftpasswd_.
 
-<AP>
-  ftpasswd --passwd --name=asterix --uid=1100 --gid=1100
-  --file=/etc/proftpd/ftpd.passwd --home=/home/virtualUsers/asterix
-  --shell=/bin/false
-</AP>
+<AP>ftpasswd --passwd --name=asterix --uid=1100 --gid=1100 --file=/etc/proftpd/ftpd.passwd --home=/home/virtualUsers/asterix --shell=/bin/false</AP>
 
 Création du groupe lié à cet utilisateur :
 
-<AP>
-  ftpasswd --group --name=asterix --gid=1100 file=/etc/proftpd/ftpd.group
-  --member=asterix
-</AP>
+<AP>ftpasswd --group --name=asterix --gid=1100 file=/etc/proftpd/ftpd.group --member=asterix</AP>
 
 Il faut attribuer à l'utilisateur asterix les droits sur le dossier _/home/virtual.users/asterix_ avec cette commande :
 

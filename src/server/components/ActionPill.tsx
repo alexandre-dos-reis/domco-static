@@ -35,9 +35,7 @@ export const ActionPill = ({
         </div>
       </div>
       <pre class="my-0 py-0 bg-base-300 whitespace-nowrap text-nowrap flex items-center justify-start">
-        <code class="pr-10">
-          <span class="text-gray-600">{a ?? "$"}</span> {children}
-        </code>
+        <code class="pr-10">{(a ?? "$ ") + children}</code>
       </pre>
     </div>
   );
