@@ -1,7 +1,13 @@
+declare global {
+  interface Window {
+    mergeHead: (text: string) => void;
+  }
+}
+
 // INFO: Taken from https://github.com/bigskysoftware/htmx-extensions/blob/main/src/head-support/head-support.js
 window.mergeHead = (
   newContent: string,
-  defaultMergeStrategy: "merge" | "append",
+  defaultMergeStrategy: "merge" | "append" = "merge",
 ) => {
   if (newContent && newContent.indexOf("<head") > -1) {
     const htmlDoc = document.createElement("html");

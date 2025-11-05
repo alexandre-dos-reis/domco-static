@@ -1,3 +1,9 @@
+declare global {
+  interface Window {
+    actionPill: any;
+  }
+}
+
 window.actionPill = (divElement: HTMLDivElement) => {
   const codeElement = divElement.querySelector("code");
 

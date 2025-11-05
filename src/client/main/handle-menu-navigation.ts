@@ -1,3 +1,8 @@
+declare global {
+  interface Window {
+    handleMenuNavigation: any;
+  }
+}
 window.handleMenuNavigation = (anchor: HTMLAnchorElement) => {
   const underlineClass = "underline";
 
