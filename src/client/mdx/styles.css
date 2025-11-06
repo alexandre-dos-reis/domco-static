@@ -1,5 +1,4 @@
 @import "tailwindcss";
-/* MDX */
 
 .mdx a {
   @apply text-yellow-400;

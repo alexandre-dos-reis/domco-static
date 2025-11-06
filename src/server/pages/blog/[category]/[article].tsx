@@ -6,6 +6,7 @@ import { Frame } from "@/server/components/Frame";
 import { setPageContext } from "@/server/context";
 import { tags } from "client:script/mdx";
 import { Link } from "@/server/components/Link";
+import { RecursiveTocs } from "@/server/components/RecursiveToc";
 
 export default async ({ params }: Page) => {
   const articles = await getArticles();
@@ -46,6 +47,7 @@ export default async ({ params }: Page) => {
           class="absolute top-0 h-full w-full object-cover opacity-40 shadow-xl/30 rounded-lg"
         />
       </section>
+      <RecursiveTocs tocs={article.toc} />
       <div class="mdx">
         <article.component components={{ AP: ActionPill, Frame, a: Link }} />
       </div>

@@ -88,12 +88,9 @@ b {
   @apply font-bold;
 }
 
-ul {
-  @apply list-disc;
-}
-
-li:not(header li) {
-  @apply mb-3;
+ul,
+li {
+  @apply list-none;
 }
 
 @font-face {
