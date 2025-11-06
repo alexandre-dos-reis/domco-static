@@ -53,7 +53,7 @@ export default async ({ params }: Page) => {
               <Link href={join("/blog", a.category, a.article)}>
                 <img
                   style={`view-transition-name: ${a.category}-${a.article}-img;`}
-                  class="w-48 h-auto rounded"
+                  class="w-48 h-32 rounded"
                   src={getImageArticle(a.category, a.article)}
                 />
               </Link>
