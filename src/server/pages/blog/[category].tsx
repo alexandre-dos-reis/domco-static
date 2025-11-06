@@ -49,7 +49,7 @@ export default async ({ params }: Page) => {
         </h2>{" "}
         <ul class="list-none">
           {articles.map((a) => (
-            <li class="flex items-center gap-x-5">
+            <li class="flex items-center gap-x-5 mb-3">
               <Link href={join("/blog", a.category, a.article)}>
                 <img
                   style={`view-transition-name: ${a.category}-${a.article}-img;`}
