@@ -30,7 +30,7 @@ export const getArticles = async () =>
 
           const frontmatter = z.parse(frontmatterSchema, module.frontmatter);
 
-          if (!import.meta.env.DEV || frontmatter.draft) {
+          if (frontmatter.draft) {
             return null!;
           }
 
