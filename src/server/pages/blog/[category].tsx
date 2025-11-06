@@ -48,30 +48,32 @@ export default async ({ params }: Page) => {
           {category && ` pour la catégorie ${category}`}
         </h2>{" "}
         <ul class="list-none">
-          {articles.map((a) => (
-            <li class="flex items-center gap-x-5 mb-3">
-              <Link href={join("/blog", a.category, a.article)}>
-                <img
-                  style={`view-transition-name: ${a.category}-${a.article}-img;`}
-                  class="w-48 h-32 rounded"
-                  src={getImageArticle(a.category, a.article)}
-                />
-              </Link>
-              <div>
-                <Link
-                  href={join("/blog", a.category, a.article)}
-                  style={`view-transition-name: ${a.category}-${a.article}-title;`}
-                >
-                  {a.frontmatter.title}
+          {await Promise.all(
+            articles.map(async (a) => (
+              <li class="flex items-center gap-x-5 mb-3">
+                <Link href={join("/blog", a.category, a.article)}>
+                  <img
+                    style={`view-transition-name: ${a.category}-${a.article}-img;`}
+                    class="w-48 h-32 rounded"
+                    src={await getImageArticle(a.category, a.article)}
+                  />
                 </Link>
                 <div>
-                  <time class="text-gray-500 whitespace-nowrap">
-                    {a.frontmatter.date}
-                  </time>
+                  <Link
+                    href={join("/blog", a.category, a.article)}
+                    style={`view-transition-name: ${a.category}-${a.article}-title;`}
+                  >
+                    {a.frontmatter.title}
+                  </Link>
+                  <div>
+                    <time class="text-gray-500 whitespace-nowrap">
+                      {a.frontmatter.date}
+                    </time>
+                  </div>
                 </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            )),
+          )}
         </ul>
       </section>
     </div>

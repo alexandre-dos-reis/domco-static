@@ -1,10 +1,10 @@
 import { Layout } from "./Layout";
 import { sendHtml } from "./utils";
-
 import { join } from "path";
 import { pageContextInit } from "./context";
 import { getArticles } from "./articles";
 import NotFoundPage from "./pages/_404";
+import type { Page } from "./types";
 
 export default {
   fetch: (req: Request) => {
@@ -28,15 +28,28 @@ export default {
         );
       }
 
-      const module = import.meta.glob("/server/pages/**/*.tsx", {
-        eager: true,
-      })[`/server/pages/${matchRoute.src}`] as {
-        default: (p: any) => Promise<JSX.Element>;
-      };
+      const getModule = import.meta.glob<(p: Page) => Promise<JSX.Element>>(
+        "/server/pages/**/*.tsx",
+        {
+          import: "default",
+        },
+      )[`/server/pages/${matchRoute.src}`];
 
-      const page = await module.default({ params: matchRoute.params });
+      const module = await getModule?.();
 
-      return sendHtml(<Layout pathname={pathname}>{page}</Layout>);
+      if (!module) {
+        throw new Error(`Module not found for route ${matchRoute}`);
+      }
+
+      const jsx = await module?.({ params: matchRoute.params });
+
+      if (!jsx) {
+        throw new Error(
+          `Module call resolved to an error for route ${matchRoute}`,
+        );
+      }
+
+      return sendHtml(<Layout pathname={pathname}>{jsx}</Layout>);
     });
   },
   prerender: async () => {

@@ -11,50 +11,70 @@ const frontmatterSchema = z.object({
 
 export type Frontmatter = z.infer<typeof frontmatterSchema>;
 
-export const getArticles = async () =>
-  (
+type MdxModule = {
+  frontmatter: Record<string, unknown>;
+  toc: Array<TableOfContentsEntry>;
+  default: (p: {
+    components: Record<string, (props: any) => JSX.Element>;
+  }) => JSX.Element;
+};
+
+export const getMdxArticle = async (category?: string, article?: string) => {
+  if (!category || !article) return undefined;
+
+  return (await import(
+    `./content/${category}/${article}/index.mdx`
+  )) as MdxModule;
+};
+
+export const getArticles = async () => {
+  return (
     await Promise.all(
-      Object.entries(import.meta.glob("/server/content/**/*.mdx")).map(
-        async ([entry, rawModule]) => {
-          const categoryAndArticle = entry.replace(
-            /^\/server\/content\/|\/index\.mdx$/g,
-            "",
-          );
-          const module = (await rawModule()) as {
-            frontmatter: Record<string, unknown>;
-            toc: Array<TableOfContentsEntry>;
-            default: (p: {
-              components: Record<string, (props: any) => JSX.Element>;
-            }) => JSX.Element;
-          };
+      Object.entries(
+        import.meta.glob<MdxModule["frontmatter"]>(
+          "/server/content/**/index.mdx",
+          {
+            import: "frontmatter",
+            eager: true,
+          },
+        ),
+      ).map(async ([entry, rawFrontmatter]) => {
+        const frontmatter = z.parse(frontmatterSchema, rawFrontmatter);
 
-          const frontmatter = z.parse(frontmatterSchema, module.frontmatter);
+        if (import.meta.env.PROD && frontmatter.draft) {
+          return null!;
+        }
 
-          if (frontmatter.draft) {
-            return null!;
-          }
+        const categoryAndArticle = entry.replace(
+          /^\/server\/content\/|\/index\.mdx$/g,
+          "",
+        );
 
-          const [category, article] = categoryAndArticle.split("/");
+        const [category, article] = categoryAndArticle.split("/");
 
-          return {
-            toc: module.toc,
-            frontmatter,
-            component: module.default,
-            category: category || "",
-            article: article || "",
-          };
-        },
-      ),
+        const mdxArticle = await getMdxArticle(category, article);
+
+        if (!mdxArticle) {
+          return null!;
+        }
+
+        return {
+          frontmatter,
+          toc: mdxArticle.toc,
+          component: mdxArticle.default,
+          category: category || "",
+          article: article || "",
+        };
+      }),
     )
   ).filter(Boolean);
+};
 
-export const getImageArticle = (category?: string, article?: string) => {
+export const getImageArticle = async (category?: string, article?: string) => {
   if (!category || !article) return undefined;
   return (
-    import.meta.glob("/server/content/**/head.jpg", {
-      eager: true,
-    })[`/server/content/${category}/${article}/head.jpg`] as {
+    (await import(`./content/${category}/${article}/head.jpg`)) as {
       default: string;
     }
-  ).default;
+  )?.default;
 };

@@ -24,7 +24,7 @@ export default async ({ params }: Page) => {
     headTags: [tags],
   });
 
-  const headImgSrc = getImageArticle(params.category, params.article);
+  const headImgSrc = await getImageArticle(params.category, params.article);
 
   return (
     <>
