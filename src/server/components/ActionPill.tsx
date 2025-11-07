@@ -6,10 +6,12 @@ export const ActionPill = ({
   children,
   a,
   i,
+  env,
 }: {
   children: Children;
   a?: string;
   i?: string;
+  env?: string;
 }) => {
   setPageContext({ headTags: [tags] });
   return (
@@ -39,7 +41,7 @@ export const ActionPill = ({
           </div>
         </div>
         <pre class="my-0 py-0 whitespace-nowrap text-nowrap flex items-center justify-start">
-          <code class="pr-10">{(a ?? "$ ") + (i ?? children)}</code>
+          <code class="pr-10">{(env ?? a ?? "$") + " " + (i ?? children)}</code>
         </pre>
       </div>
     </div>
