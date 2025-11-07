@@ -6,6 +6,7 @@ import gilleAgri from "@/server/assets/gille-agri.fr.png";
 import { setPageContext } from "@/server/context";
 import { TagTech } from "../components/TagTech";
 import { Link } from "../components/Link";
+import { JobCard } from "../components/JobCard";
 
 export default () => {
   setPageContext({ title: "Accueil" });
@@ -131,104 +132,21 @@ export default () => {
       <section>
         <h2>Mes derniers jobs 🏬</h2>
         <div class="grid justify-center md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-7 mb-3 mt-4">
-          <Link
-            class="relative overflow-hidden rounded-lg group"
-            href="https://www.finishers.com"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <img
-              src={finishers}
-              alt="Finishers"
-              class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
-              width="750"
-              height="422"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="absolute inset-0 group-hover:text-white text-sm m-3">
-              <h4 class="absolute top-0 mt-0 font-bold text-2xl">Finishers</h4>
-              <p class="absolute bottom-0 font-bold">
-                Full stack developper
-                <br /> Déc 2022 - Juin 2025
-              </p>
-            </div>
-          </Link>
-          <Link
-            class="relative overflow-hidden rounded-lg group"
-            href="https://www.volvogroup.com/fr"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <img
-              src={volvo}
-              alt="Volvo trucks blainville"
-              class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
-              width="1068"
-              height="730"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="absolute inset-0 group-hover:text-white text-sm m-3">
-              <h4 class="absolute top-0 mt-0 font-bold text-2xl">
-                Volvo Trucks
-              </h4>
-              <p class="absolute bottom-0 font-bold">
-                Digital &amp; IT developer
-                <br /> Oct 2021 - Août 2022
-              </p>
-            </div>
-          </Link>
-          <Link
-            class="relative overflow-hidden rounded-lg group"
-            href="https://www.linkedin.com/company/univers-paie"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <img
-              src={up}
-              alt="Univers Paie | Hr Path"
-              class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
-              width="1280"
-              height="719"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="absolute inset-0 group-hover:text-white text-sm m-3">
-              <h4 class="absolute top-0 mt-0 font-bold text-2xl">
-                HR-Path Univers Paie
-              </h4>
-              <p class="absolute bottom-0 font-bold">
-                Technicien d'exploitation
-                <br /> Sept 2019 - Août 2021
-              </p>
-            </div>
-          </Link>
-          <Link
-            class="relative overflow-hidden rounded-lg group"
-            href="https://www.gum.paris"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            <img
-              src={gum}
-              alt=""
-              class="h-56 w-full object-cover transition-all opacity-30 group-hover:opacity-20 group-hover:scale-105"
-              width="1400"
-              height="800"
-              loading="lazy"
-              decoding="async"
-            />
-            <div class="absolute inset-0 group-hover:text-white text-sm m-3">
-              <h4 class="absolute top-0 mt-0 font-bold text-2xl">
-                Green United Music
-              </h4>
-              <p class="absolute bottom-0 font-bold">
-                Ingénieur du son
-                <br /> Mai 2012 - Juin 2019
-              </p>
-            </div>
-          </Link>
+          <JobCard src={finishers} company="Finishers">
+            Full stack developper
+            <br /> Déc 2022 - Juin 2025
+          </JobCard>
+          <JobCard src={volvo} company="Volvo Trucks">
+            Digital &amp; IT developer <br /> Oct 2021 - Août 2022
+          </JobCard>
+          <JobCard src={up} company="HR-Path Univers Paie">
+            Technicien d'exploitation
+            <br /> Sept 2019 - Août 2021
+          </JobCard>
+          <JobCard src={gum} company="Green United Music">
+            Ingénieur du son
+            <br /> Mai 2012 - Juin 2019
+          </JobCard>
         </div>
       </section>
       <section>
