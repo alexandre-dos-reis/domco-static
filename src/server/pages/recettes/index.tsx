@@ -9,10 +9,13 @@ const NodeTree = ({
 }) => (
   <li>
     <a
-      class="border border-gray-700 rounded px-2 py-1"
+      class="border border-gray-700 rounded px-2 py-1 bg-slate-900"
       href={`/recettes/${node.slugs}`}
+      style={`view-transition-name: ${node.slugs.replaceAll("/", "-")};`}
     >
-      {node.slugs.replace(/^.*\//g, "")}
+      {node.frontmatter.nav ||
+        node.frontmatter.title ||
+        node.slugs.replace(/^.*\//g, "")}
     </a>
     {"children" in node && node.children.length > 0 && (
       <ul

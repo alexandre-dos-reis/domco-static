@@ -68,3 +68,10 @@ export const getImageArticle = async (category?: string, article?: string) => {
     }
   )?.default;
 };
+
+export const getCategories = async (
+  articles: Awaited<ReturnType<typeof getArticles>>,
+) =>
+  [...new Map(articles.map((a) => [a.category, a])).values()].map(
+    (c) => c.category,
+  );

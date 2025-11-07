@@ -2,9 +2,10 @@ import { Layout } from "./Layout";
 import { sendHtml } from "./utils";
 import { join } from "path";
 import { pageContextInit } from "./context";
-import { getArticles } from "./procedures";
+import { getArticles, getCategories } from "./procedures";
 import NotFoundPage from "./pages/_404";
 import type { Page } from "./types";
+import { getRecettes } from "./recettes";
 
 export default {
   fetch: (req: Request) => {
@@ -54,17 +55,22 @@ export default {
   },
   prerender: async () => {
     const articles = await getArticles();
-    const categories = [
-      ...new Map(articles.map((a) => [a.category, a])).values(),
-    ];
+
+    const [categories, recettes] = await Promise.all([
+      getCategories(articles),
+      getRecettes(),
+    ]);
 
     return [
       "/_404",
       "/",
       "/parcours",
-      "/blog",
-      ...categories.map((c) => join("/blog", c.category)),
-      ...articles.map((a) => join("/blog", a.category, a.article)),
+      // TODO: Redirect old urls to /procedures/**
+      "/procedures",
+      ...categories.map((c) => join("/procedures", c)),
+      ...articles.map((a) => join("/procedures", a.category, a.article)),
+      "/recettes",
+      ...recettes.map((r) => join("/recettes", r.slugs)),
     ];
   },
 };

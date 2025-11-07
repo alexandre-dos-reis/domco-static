@@ -4,7 +4,7 @@ export const Link = (props: JSX.HtmlAnchorTag) => {
   }
 
   if (props.href?.startsWith("article::/")) {
-    props.href = props.href.replace("article::/", "/blog/");
+    props.href = props.href.replace("article::/", "/procedures/");
   }
 
   return <a {...props} />;

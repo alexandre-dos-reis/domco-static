@@ -1,4 +1,8 @@
-import { getArticles, getImageArticle } from "@/server/procedures";
+import {
+  getArticles,
+  getCategories,
+  getImageArticle,
+} from "@/server/procedures";
 import { Link } from "@/server/components/Link";
 import { setPageContext } from "@/server/context";
 import type { Page } from "@/server/types";
@@ -8,13 +12,11 @@ import { join } from "path";
 export default async ({ params }: Page) => {
   const category = params.category ? unslugify(params.category) : undefined;
 
-  setPageContext({ title: category || "Blog" });
+  setPageContext({ title: category || "Procédures" });
 
   let articles = await getArticles();
 
-  const categories = [
-    ...new Map(articles.map((a) => [a.category, a])).values(),
-  ];
+  const categories = await getCategories(articles);
 
   if (params.category) {
     articles = articles.filter((a) => a.category === params.category);
@@ -26,17 +28,14 @@ export default async ({ params }: Page) => {
         <h2>Catégories 🏷️</h2>{" "}
         <ul class="list-none flex flex-wrap">
           <li class="list-none bg-gray-300 py-[2px] px-2 m-1 rounded-lg">
-            <Link class="text-gray-800 text-sm" href="/blog">
+            <Link class="text-gray-800 text-sm" href="/procedures">
               Toutes
             </Link>
           </li>
           {categories.map((c) => (
             <li class="list-none bg-gray-300 py-[2px] px-2 m-1 rounded-lg">
-              <Link
-                class="text-gray-800 text-sm"
-                href={join("/blog", c.category)}
-              >
-                {unslugify(c.category)}
+              <Link class="text-gray-800 text-sm" href={join("/procedures", c)}>
+                {unslugify(c)}
               </Link>
             </li>
           ))}
@@ -51,7 +50,7 @@ export default async ({ params }: Page) => {
           {await Promise.all(
             articles.map(async (a) => (
               <li class="flex items-center gap-x-5 mb-3">
-                <Link href={join("/blog", a.category, a.article)}>
+                <Link href={join("/procedures", a.category, a.article)}>
                   <img
                     style={`view-transition-name: ${a.category}-${a.article}-img;`}
                     class="w-48 h-32 rounded"
@@ -60,7 +59,7 @@ export default async ({ params }: Page) => {
                 </Link>
                 <div>
                   <Link
-                    href={join("/blog", a.category, a.article)}
+                    href={join("/procedures", a.category, a.article)}
                     style={`view-transition-name: ${a.category}-${a.article}-title;`}
                   >
                     {a.frontmatter.title}

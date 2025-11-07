@@ -69,7 +69,7 @@ export default () => {
         <p>
           Ce site me sert de portfolio mais aussi de recueil d'articles et
           procédures écrit pendant mes études, visible dans la partie{" "}
-          <Link href="/blog">blog</Link>.
+          <Link href="/procedures">procédures</Link>.
         </p>
         <div class="flex flex-wrap items-center gap-x-4">
           <p>Retrouvez-moi sur :</p>

@@ -1,6 +1,5 @@
 import { ActionPill } from "./components/ActionPill";
 import { Frame } from "./components/Frame";
-import { Command } from "./components/Command";
 import { Link } from "./components/Link";
 
 export const sendHtml = (
@@ -22,4 +21,9 @@ export function unslugify(slug: string) {
   });
 }
 
-export const mdxComponents = { AP: ActionPill, Frame, a: Link, C: Command };
+export const mdxComponents = {
+  AP: ActionPill,
+  Frame,
+  a: Link,
+  C: ActionPill,
+};

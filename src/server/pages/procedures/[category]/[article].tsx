@@ -1,11 +1,8 @@
 import { getArticles, getImageArticle } from "@/server/procedures";
 import type { Page } from "@/server/types";
 import NotFound from "@/server/pages/_404";
-import { ActionPill } from "@/server/components/ActionPill";
-import { Frame } from "@/server/components/Frame";
 import { setPageContext } from "@/server/context";
 import { tags } from "client:script/mdx";
-import { Link } from "@/server/components/Link";
 import { RecursiveTocs } from "@/server/components/RecursiveToc";
 import { mdxComponents } from "@/server/utils";
 
