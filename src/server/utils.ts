@@ -1,3 +1,8 @@
+import { ActionPill } from "./components/ActionPill";
+import { Frame } from "./components/Frame";
+import { Command } from "./components/Command";
+import { Link } from "./components/Link";
+
 export const sendHtml = (
   body?: BodyInit | JSX.Element | null,
   init?: ResponseInit,
@@ -16,3 +21,5 @@ export function unslugify(slug: string) {
     return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
   });
 }
+
+export const mdxComponents = { AP: ActionPill, Frame, a: Link, C: Command };

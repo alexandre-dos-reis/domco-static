@@ -2,7 +2,7 @@ import { Layout } from "./Layout";
 import { sendHtml } from "./utils";
 import { join } from "path";
 import { pageContextInit } from "./context";
-import { getArticles } from "./articles";
+import { getArticles } from "./procedures";
 import NotFoundPage from "./pages/_404";
 import type { Page } from "./types";
 

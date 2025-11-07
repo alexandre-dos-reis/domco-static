@@ -1,0 +1,51 @@
+---
+sort: 1
+title: Vim mouvements de bases
+nav: bases
+---
+
+Voici quelques commandes de bases.
+
+<C i={`h, j, k, l`} env={`[NORMAL]`}>Déplace le curseur respectivement à gauche, en bas, en haut et à droite.</C>
+
+<C i={`x, dw, dd`} env={`[NORMAL]`}>Supprime une lettre, un mot ou une ligne entière.</C>
+
+<C i={`u`} env={`[NORMAL]`}>`undo`.</C>
+
+<C i={`Ctrl-r`} env={`[NORMAL]`}>`redo`.</C>
+
+<C i={`yy`} env={`[NORMAL]`}>Duplique la ligne où se trouve le curseur.</C>
+
+<C i={`p`} env={`[NORMAL]`}>Copie le contenu du buffer après le curseur.</C>
+
+<C i={`P`} env={`[NORMAL]`}>Copie le contenu du buffer avant le curseur.</C>
+
+<C i={`I`} env={`[NORMAL]`}>Place le curseur en début de ligne et active le mode `INSERT`.</C>
+
+<C i={`A`} env={`[NORMAL]`}>Place le curseur en fin de ligne et active le mode `INSERT`.</C>
+
+<C i={`o`} env={`[NORMAL]`}>Ajoute une nouvelle ligne en dessous de la ligne courante et bascule en mode `INSERT`</C>
+
+<C i={`O`} env={`[NORMAL]`}>Ajoute une nouvelle ligne au dessus de la ligne courante et bascule en mode `INSERT`</C>
+
+<C i={`r<lettre>`} env={`[NORMAL]`}>Remplace la lettre qui se trouve sous le curseur par la nouvelle.</C>
+
+<C i={`R<lettre>`} env={`[NORMAL]`}>Remplace plus d'un charactère, `ESC` permet de quitter.</C>
+
+<C i={`f<lettre>`} env={`[NORMAL]`}>Place le curseur sur la prochaine &#60;lettre&#62;.</C>
+
+<C i={`F<lettre>`} env={`[NORMAL]`}>Place le curseur sur la précédente &#60;lettre&#62;.</C>
+
+<C i={`t<lettre>`} env={`[NORMAL]`}>Place le curseur juste avant la prochaine &#60;lettre&#62;.</C>
+
+<C i={`T<lettre>`} env={`[NORMAL]`}>Place le curseur juste avant la précédente &#60;lettre&#62;.</C>
+
+<C i={`df<lettre>`} env={`[NORMAL]`}>Supprime tous depuis le curseur jusqu'à la prochaine lettre.</C>
+
+<C i={`dF<lettre>`} env={`[NORMAL]`}>Supprime tous depuis le curseur jusqu'à la précédente lettre.</C>
+
+<C i={`Shift + [h, l]`} env={`[NORMAL]`}>Permet de se déplacer au début ou à la fin du fichier.</C>
+
+<C i={`G`} env={`[NORMAL]`}>Déplace le curseur à la fin du fichier.</C>
+
+<C i={`gg`} env={`[NORMAL]`}>Déplace le curseur au début du fichier.</C>

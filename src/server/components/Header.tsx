@@ -6,8 +6,9 @@ export const Header = ({ pathname }: { pathname: string }) => {
       href: "/",
       label: "Accueil",
     },
-    { href: "/blog", label: "Blog" },
     { href: "/parcours", label: "Parcours" },
+    { href: "/blog", label: "Blog" },
+    { href: "/recettes", label: "Recettes" },
     {
       href: "mailto:ajm.dosreis.daponte@gmail.com",
       label: "Contact",

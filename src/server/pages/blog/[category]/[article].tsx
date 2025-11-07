@@ -1,4 +1,4 @@
-import { getArticles, getImageArticle } from "@/server/articles";
+import { getArticles, getImageArticle } from "@/server/procedures";
 import type { Page } from "@/server/types";
 import NotFound from "@/server/pages/_404";
 import { ActionPill } from "@/server/components/ActionPill";
@@ -7,6 +7,7 @@ import { setPageContext } from "@/server/context";
 import { tags } from "client:script/mdx";
 import { Link } from "@/server/components/Link";
 import { RecursiveTocs } from "@/server/components/RecursiveToc";
+import { mdxComponents } from "@/server/utils";
 
 export default async ({ params }: Page) => {
   const articles = await getArticles();
@@ -49,7 +50,7 @@ export default async ({ params }: Page) => {
       </section>
       <RecursiveTocs tocs={article.toc} />
       <div class="mdx">
-        <article.component components={{ AP: ActionPill, Frame, a: Link }} />
+        <article.component components={mdxComponents} />
       </div>
     </>
   );

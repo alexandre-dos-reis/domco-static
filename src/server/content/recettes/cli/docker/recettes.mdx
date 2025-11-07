@@ -1,0 +1,10 @@
+---
+sort: 10
+title: Recettes
+nav: recettes
+---
+
+## Backup de volumes 
+
+<C i={`docker run --rm --volumes-from CONTAINER -v $(pwd):/backup busybox tar cvfz /backup/your-backup.tar PATH-IN-CONTAINER
+`}>Monte tous les volumes d'un conteneur dans un conteneur temporaire, puis cree une archive dans le chemin courant de l'hote.</C>

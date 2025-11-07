@@ -1,29 +1,19 @@
-import type { JSX } from "hono/jsx/jsx-runtime";
 import z from "zod";
+import type { MdxModule } from "./types";
 
-import { type TableOfContentsEntry } from "@altano/remark-mdx-toc-with-slugs";
-
-const frontmatterSchema = z.object({
+const procedurefrontmatterSchema = z.object({
   title: z.string(),
   date: z.string().optional(),
   draft: z.boolean().default(false),
 });
 
-export type Frontmatter = z.infer<typeof frontmatterSchema>;
-
-type MdxModule = {
-  frontmatter: Record<string, unknown>;
-  toc: Array<TableOfContentsEntry>;
-  default: (p: {
-    components: Record<string, (props: any) => JSX.Element>;
-  }) => JSX.Element;
-};
+export type ProcedureFrontmatter = z.infer<typeof procedurefrontmatterSchema>;
 
 export const getMdxArticle = async (category?: string, article?: string) => {
   if (!category || !article) return undefined;
 
   return (await import(
-    `./content/${category}/${article}/index.mdx`
+    `./content/procedures/${category}/${article}/index.mdx`
   )) as MdxModule;
 };
 
@@ -32,21 +22,21 @@ export const getArticles = async () => {
     await Promise.all(
       Object.entries(
         import.meta.glob<MdxModule["frontmatter"]>(
-          "/server/content/**/index.mdx",
+          "/server/content/procedures/**/index.mdx",
           {
             import: "frontmatter",
             eager: true,
           },
         ),
       ).map(async ([entry, rawFrontmatter]) => {
-        const frontmatter = z.parse(frontmatterSchema, rawFrontmatter);
+        const frontmatter = z.parse(procedurefrontmatterSchema, rawFrontmatter);
 
         if (import.meta.env.PROD && frontmatter.draft) {
           return null!;
         }
 
         const categoryAndArticle = entry.replace(
-          /^\/server\/content\/|\/index\.mdx$/g,
+          /^\/server\/content\/procedures\/|\/index\.mdx$/g,
           "",
         );
 
@@ -73,7 +63,7 @@ export const getArticles = async () => {
 export const getImageArticle = async (category?: string, article?: string) => {
   if (!category || !article) return undefined;
   return (
-    (await import(`./content/${category}/${article}/head.jpg`)) as {
+    (await import(`./content/procedures/${category}/${article}/head.jpg`)) as {
       default: string;
     }
   )?.default;

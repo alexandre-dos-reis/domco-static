@@ -1,4 +1,4 @@
-import { getArticles, getImageArticle } from "@/server/articles";
+import { getArticles, getImageArticle } from "@/server/procedures";
 import { Link } from "@/server/components/Link";
 import { setPageContext } from "@/server/context";
 import type { Page } from "@/server/types";
