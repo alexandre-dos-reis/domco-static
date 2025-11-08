@@ -3,6 +3,9 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import sirv from "sirv";
 
+const htmlContentType = "text/html; charset=utf-8";
+const plainTextContentType = "text/plain; charset=utf-8";
+
 const serveAssets = sirv("dist/client", {
   dev: false,
   gzip: true,
@@ -14,6 +17,22 @@ const serveAssets = sirv("dist/client", {
     }
   },
   onNoMatch: async (req, res) => {
+    // These are old url, redirect to new routes
+    if (req.url?.startsWith("/blog")) {
+      const slugs = req.url.replace("/blog", "/procedures");
+
+      const filePath = join(__dirname, "./dist/client", slugs, "index.html");
+      try {
+        const data = await readFile(filePath);
+        res.statusCode = 308; // Permanent redirect
+        res.setHeader("Location", slugs); // Browser will redirect to new url
+        res.setHeader("Content-Type", htmlContentType);
+        return res.end(data);
+      } catch (_) {
+        /* Fallthrough 404*/
+      }
+    }
+    // No match Route
     res.statusCode = 404;
 
     if (req.headers["accept"]?.includes("text/html")) {
@@ -21,10 +40,10 @@ const serveAssets = sirv("dist/client", {
         const filePath = join(__dirname, "./dist/client/_404/index.html");
         const data = await readFile(filePath);
 
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.setHeader("Content-Type", htmlContentType);
         res.end(data);
       } catch (err) {
-        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.setHeader("Content-Type", plainTextContentType);
         res.end("404 - Not Found");
       }
 
