@@ -4,7 +4,6 @@ import { getRecettesTree, getRecettes } from "@/server/recettes";
 import { mdxComponents } from "@/server/utils";
 
 import { tags as mdxTags } from "client:script/mdx";
-import { tags as recetteTags } from "client:script/recettes-tree";
 import { setPageContext } from "@/server/context";
 import { NodeTree } from "@/server/components/NodeTree";
 
@@ -22,7 +21,7 @@ export default async ({ params }: Page) => {
 
   setPageContext({
     title: recette.frontmatter.title,
-    headTags: [mdxTags, ...(hasChidlren ? [recetteTags] : [])],
+    headTags: [mdxTags],
   });
 
   return (
