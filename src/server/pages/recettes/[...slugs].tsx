@@ -16,7 +16,7 @@ export default async ({ params }: Page) => {
 
   const children = recettes.filter((r) => r.slugs.startsWith(recette.slugs));
 
-  const hasChidlren = children.length > 0;
+  const hasChildren = children.length > 0;
 
   setPageContext({
     title: recette.frontmatter.title,
@@ -33,7 +33,7 @@ export default async ({ params }: Page) => {
           {recette.frontmatter.title}
         </h1>
       </div>
-      {hasChidlren && (
+      {hasChildren && (
         <NodeTree disableRoot nodes={await getRecettesTree(children)} />
       )}
       <div class="mdx">
