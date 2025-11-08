@@ -25,6 +25,11 @@ body {
   @apply overflow-y-scroll;
 }
 
+select,
+select:picker(select) {
+  appearance: base-select;
+}
+
 h1,
 h2,
 h3,

@@ -52,7 +52,7 @@ export type Node = Item & {
   children: (Node | Item)[];
 };
 
-export const buildRecettesTree = (list: Item[]): Node[] => {
+const buildRecettesTree = (list: Item[] | Node[]): Node[] => {
   // Gather all folder prefixes that have an index.mdx file
   const allPrefixes = new Set(
     list
@@ -106,5 +106,5 @@ export const buildRecettesTree = (list: Item[]): Node[] => {
   return topLevelPrefixes.map((prefix) => buildTree(prefix));
 };
 
-export const getRecettesTree = async () =>
-  buildRecettesTree(await getRecettes());
+export const getRecettesTree = async (list?: Node[] | Item[]) =>
+  buildRecettesTree(list ?? (await getRecettes()));
