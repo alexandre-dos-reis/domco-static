@@ -1,29 +1,30 @@
 const DOT_RADIUS = 2;
 
-const drawDot = (svg: SVGElement, { x, y }: { x: number; y: number }) => {
-  const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+const drawSvgElement = <
+  TagName extends keyof SVGElementTagNameMap,
+  Tag extends SVGElementTagNameMap[TagName],
+  Parent extends HTMLElement | SVGElement,
+>({
+  name,
+  attributes,
+  parent,
+  handler,
+}: {
+  name: TagName;
+  attributes: Record<string, string | number | boolean>;
+  parent: Parent;
+  handler?: (instance: Tag, parent: Parent) => void;
+}) => {
+  const element = document.createElementNS("http://www.w3.org/2000/svg", name);
 
-  dot.setAttribute("cx", x.toString());
-  dot.setAttribute("cy", y.toString());
-  dot.setAttribute("r", DOT_RADIUS.toString());
-  dot.style.fill = svg.style.stroke;
+  Object.entries(attributes).forEach(([key, value]) => {
+    element.setAttribute(key, `${value}`);
+  });
 
-  svg.appendChild(dot);
-  return dot;
-};
+  handler?.(element, parent);
 
-const drawLine = (
-  svg: SVGElement,
-  { x1, x2, y1, y2 }: { x1: number; y1: number; x2: number; y2: number },
-) => {
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-
-  line.setAttribute("x1", x1.toString());
-  line.setAttribute("y1", y1.toString());
-  line.setAttribute("x2", x2.toString());
-  line.setAttribute("y2", y2.toString());
-  svg.appendChild(line);
-  return line;
+  parent.appendChild(element);
+  return element;
 };
 
 const drawLigns = () => {
@@ -44,15 +45,34 @@ const drawLigns = () => {
     const startX = linkRect.left + linkRect.width / 2 - svgRect.left;
     const startY = linkRect.top + linkRect.height - svgRect.top;
 
-    drawDot(svg, { x: startX, y: startY });
+    drawSvgElement({
+      name: "circle",
+      parent: svg,
+      attributes: { cx: startX, cy: startY, r: DOT_RADIUS },
+      handler(instance, parent) {
+        instance.style.fill = parent.style.stroke;
+      },
+    });
 
     children.forEach((child) => {
       const childRect = child.getBoundingClientRect();
       const endX = childRect.left + childRect.width / 2 - svgRect.left;
       const endY = childRect.top - svgRect.top;
 
-      drawLine(svg, { x1: startX, y1: startY, x2: endX, y2: endY });
-      drawDot(svg, { x: endX, y: endY });
+      drawSvgElement({
+        name: "line",
+        parent: svg,
+        attributes: { x1: startX, y1: startY, x2: endX, y2: endY },
+      });
+
+      drawSvgElement({
+        name: "circle",
+        parent: svg,
+        attributes: { cx: endX, cy: endY, r: DOT_RADIUS },
+        handler(instance, parent) {
+          instance.style.fill = parent.style.stroke;
+        },
+      });
     });
   });
 };
