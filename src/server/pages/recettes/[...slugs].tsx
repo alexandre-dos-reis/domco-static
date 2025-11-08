@@ -14,8 +14,7 @@ export default async ({ params }: Page) => {
 
   if (!recette) return <NotFound />;
 
-  const prefix = recette.path.replace(/\/index\.mdx|\.mdx/g, "");
-  const children = recettes.filter((r) => r.path.startsWith(prefix));
+  const children = recettes.filter((r) => r.slugs.startsWith(recette.slugs));
 
   const hasChidlren = recettes.length > 0;
 
@@ -34,10 +33,12 @@ export default async ({ params }: Page) => {
           {recette.frontmatter.title}
         </h1>
       </div>
+      {hasChidlren && (
+        <NodeTree disableRoot nodes={await getRecettesTree(children)} />
+      )}
       <div class="mdx">
         <recette.component components={mdxComponents} />
       </div>
-      {hasChidlren && <NodeTree nodes={await getRecettesTree(children)} />}
     </>
   );
 };

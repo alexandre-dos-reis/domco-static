@@ -35,12 +35,9 @@ export const getArticles = async () => {
           return null!;
         }
 
-        const categoryAndArticle = entry.replace(
-          /^\/server\/content\/procedures\/|\/index\.mdx$/g,
-          "",
-        );
-
-        const [category, article] = categoryAndArticle.split("/");
+        const [category, article] = entry
+          .replace(/^\/server\/content\/procedures\/|\/index\.mdx$/g, "")
+          .split("/");
 
         const mdxArticle = await getMdxArticle(category, article);
 
