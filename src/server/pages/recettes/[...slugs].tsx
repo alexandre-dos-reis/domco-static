@@ -16,7 +16,10 @@ export default async ({ params }: Page) => {
 
   const children = recettes.filter((r) => r.slugs.startsWith(recette.slugs));
 
-  const hasChildren = children.length > 0;
+  const hasChildren =
+    // remove itself
+    children.filter((r) => r.slugs !== recette.slugs).length > 0 &&
+    children.length > 0;
 
   setPageContext({
     title: recette.frontmatter.title,
