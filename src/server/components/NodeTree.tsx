@@ -1,6 +1,6 @@
 import { setPageContext } from "../context";
 import type { Item, Node } from "../recettes";
-import { tags } from "client:script/recettes-tree";
+import { tags } from "client:script/node-tree";
 
 export const NodeTree = ({
   nodes,

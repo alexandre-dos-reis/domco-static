@@ -17,11 +17,11 @@ export const Header = ({ pathname }: { pathname: string }) => {
     {
       label: "Blog",
       children: [
-        { href: "/parcours", label: "Parcours" },
         { href: "/procedures", label: "Procédures" },
+        { href: "/recettes", label: "Recettes" },
       ],
     },
-    { href: "/recettes", label: "Recettes" },
+    { href: "/parcours", label: "Parcours" },
     {
       href: "mailto:ajm.dosreis.daponte@gmail.com",
       label: "Contact",
@@ -45,25 +45,31 @@ export const Header = ({ pathname }: { pathname: string }) => {
                   <Link
                     href={n.href}
                     class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
-                    // onclick="window.handleMenuNavigation(this)"
                   >
                     {" "}
                     {n.label}{" "}
                   </Link>
                 )}
                 {"children" in n && (
-                  <select
-                    class={`cursor-pointer mx-3 tracking-wide text-2xl decoration-1 underline-offset-10`}
-                  >
-                    {n.children.map((c) => (
-                      <option
-                        value={n.label}
-                        onclick="window.handleMenuSelect(this)"
-                      >
-                        <Link href={c.href}>{c.label}</Link>
-                      </option>
-                    ))}
-                  </select>
+                  <details class="cursor-pointer relative bg-gray-800 text-gray-300">
+                    <summary
+                      class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10`}
+                    >
+                      {n.label}
+                    </summary>
+                    <ul class="absolute flex flex-col gap-2 mt-2 bg-gray-800 text-gray-300">
+                      {n.children.map((c) => (
+                        <li>
+                          <Link
+                            class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10`}
+                            href={c.href}
+                          >
+                            {c.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                 )}
                 {i === navLinks.length - 1 ? "" : " |"}{" "}
               </li>

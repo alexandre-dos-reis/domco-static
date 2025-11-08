@@ -13,12 +13,20 @@ h1::view-transition-new(*) {
   animation: fade-zoom 0.5s ease-in-out both;
 }
 
+/* Remove arrow*/
+details summary::marker {
+  content: "";
+}
+details summary::-webkit-details-marker {
+  display: none;
+}
+
 body {
   @apply overflow-y-scroll;
 }
 
 html {
-  @apply bg-gray-800 text-gray-300 antialiased font-sans tracking-wide text-base;
+  @apply bg-gray-800 text-gray-300 antialiased font-sans tracking-wide;
 }
 
 body {
@@ -74,7 +82,8 @@ p code {
   @apply bg-black p-1 rounded-md;
 }
 
-a {
+a,
+details summary {
   /* @apply underline underline-offset-4 decoration-gray-400 decoration-1 hover:text-gray-400 */
   @apply hover:opacity-60;
 }
