@@ -104,7 +104,10 @@ li {
 
 @font-face {
   font-family: "dancing";
-  src: url("./DancingScript.ttf");
+  /* Generate with :
+   * pyftsubset ./DancingScript.ttf --text="Alexandre DosReisAccueilBlogParcoursContactProcéduresRecettes|" --output-file=subset.ttf
+   * */
+  src: url("./subset.ttf");
 }
 
 .handwriting {
