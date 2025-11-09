@@ -29,7 +29,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
   ];
 
   return (
-    <header class="w-full mx-auto p-4 sticky top-0 bg-gray-800/90 backdrop-blur-md z-50">
+    <header class="w-full mx-auto p-4 sticky top-0 bg-gray-800/90 backdrop-blur-md z-40">
       <div class="max-w-3xl mx-auto flex flex-wrap md:flex-nowrap handwriting">
         <Link
           class="no-underline text-3xl font-semibold w-full text-center md:text-left mb-6 md:mb-0"
@@ -44,7 +44,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
                 {"href" in n && (
                   <Link
                     href={n.href}
-                    class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
+                    class={`z-50 mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
                   >
                     {" "}
                     {n.label}{" "}
