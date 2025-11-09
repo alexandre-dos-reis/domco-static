@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "@kitajs/html";
+import type { PropsWithChildren } from "hono/jsx";
 import { Link } from "./Link";
 
 export const BlogCard = ({

@@ -1,4 +1,4 @@
-import type { Children } from "@kitajs/html";
+import type { PropsWithChildren } from "hono/jsx";
 import { setPageContext } from "../context";
 import { tags } from "client:script/action-pill";
 
@@ -7,12 +7,11 @@ export const ActionPill = ({
   a,
   i,
   env,
-}: {
-  children: Children;
+}: PropsWithChildren<{
   a?: string;
   i?: string;
   env?: string;
-}) => {
+}>) => {
   setPageContext({ headTags: [tags] });
   return (
     <div class="mb-8">
