@@ -29,7 +29,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
   ];
 
   return (
-    <header class="w-full mx-auto p-4 sticky top-0 bg-gray-800/90 backdrop-blur-md z-40">
+    <header class="w-full mx-auto p-4 sticky top-0 bg-gray-800/90 backdrop-blur-md z-50">
       <div class="max-w-3xl mx-auto flex flex-wrap md:flex-nowrap handwriting">
         <Link
           class="no-underline text-3xl font-semibold w-full text-center md:text-left mb-6 md:mb-0"
@@ -50,7 +50,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
                   </Link>
                 )}
                 {"children" in n && (
-                  <nav class="group cursor-pointer inline-block bg-gray-800 text-gray-300">
+                  <nav class="group cursor-pointer inline-block text-gray-300">
                     <button
                       class={`cursor-pointer mx-3 tracking-wide text-2xl decoration-1 underline-offset-10`}
                     >
