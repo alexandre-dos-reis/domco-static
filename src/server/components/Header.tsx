@@ -46,7 +46,6 @@ export const Header = ({ pathname }: { pathname: string }) => {
                     href={n.href}
                     class={`z-50 mx-3 tracking-wide text-2xl decoration-1 underline-offset-10 ${n.href === pathname && "underline"}`}
                   >
-                    {" "}
                     {n.label}{" "}
                   </Link>
                 )}

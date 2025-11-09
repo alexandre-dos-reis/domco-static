@@ -1,6 +1,4 @@
 import type { PropsWithChildren } from "hono/jsx";
-import { setPageContext } from "../context";
-import { tags } from "client:script/action-pill";
 
 export const ActionPill = ({
   children,
@@ -12,17 +10,17 @@ export const ActionPill = ({
   i?: string;
   env?: string;
 }>) => {
-  setPageContext({ headTags: [tags] });
   return (
     <div class="mb-8">
       {i && <p>{children}</p>}
       <div
-        class="relative action-pill cursor-pointer"
-        onclick="window.actionPill(this)"
+        class="relative cursor-pointer group"
+        onclick="navigator.clipboard.writeText(this.querySelector('code').innerHTML)"
       >
         <div class="absolute inset-y-0 right-3 z-1 p-2">
           <div class="bg-slate-900">
             <svg
+              class="group-active:fill-red-500"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
