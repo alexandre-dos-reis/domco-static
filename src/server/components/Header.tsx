@@ -51,13 +51,13 @@ export const Header = ({ pathname }: { pathname: string }) => {
                   </Link>
                 )}
                 {"children" in n && (
-                  <details class="cursor-pointer relative bg-gray-800 text-gray-300">
-                    <summary
-                      class={`mx-3 tracking-wide text-2xl decoration-1 underline-offset-10`}
+                  <nav class="group cursor-pointer inline-block bg-gray-800 text-gray-300">
+                    <button
+                      class={`cursor-pointer mx-3 tracking-wide text-2xl decoration-1 underline-offset-10`}
                     >
                       {n.label}
-                    </summary>
-                    <ul class="absolute flex flex-col gap-2 mt-2 bg-gray-800 text-gray-300">
+                    </button>
+                    <ul class="absolute group-hover:flex hidden hover:flex flex-col gap-2 py-2 bg-gray-800 text-gray-300">
                       {n.children.map((c) => (
                         <li>
                           <Link
@@ -69,7 +69,7 @@ export const Header = ({ pathname }: { pathname: string }) => {
                         </li>
                       ))}
                     </ul>
-                  </details>
+                  </nav>
                 )}
                 {i === navLinks.length - 1 ? "" : " |"}{" "}
               </li>
