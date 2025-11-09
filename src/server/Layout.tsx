@@ -1,9 +1,9 @@
-import type { PropsWithChildren } from "@kitajs/html";
 import { tags } from "client:script/main";
 import { Header } from "./components/Header";
 import { raw } from "hono/html";
 import { getPageContext } from "./context";
 import { Link } from "./components/Link";
+import type { PropsWithChildren } from "hono/jsx";
 
 export const Layout = ({
   children,
