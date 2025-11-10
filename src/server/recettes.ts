@@ -17,6 +17,8 @@ export type Item = {
   frontmatter: RecetteFrontmatter;
 };
 
+let draftedRecettesSlugs: string[] = [];
+
 export const getRecettes = async () =>
   (
     await Promise.all(
@@ -25,21 +27,32 @@ export const getRecettes = async () =>
           eager: true,
         }),
       ).map(async ([path, rawModule]) => {
+        const slugs = path.replace(
+          /^\/server\/content\/recettes\/|\/index\.mdx$|\.mdx$/g,
+          "",
+        );
+
+        // Remove children whose parent are drafted
+        if (draftedRecettesSlugs.some((s) => slugs.startsWith(s))) {
+          draftedRecettesSlugs.push(slugs);
+          return null!;
+        }
+
         const frontmatter = z.parse(
           recetteFrontmatterSchema,
           rawModule.frontmatter,
         );
 
-        if (import.meta.env.PROD && frontmatter.draft) return null!;
+        if (frontmatter.draft) {
+          draftedRecettesSlugs.push(slugs);
+          return null!;
+        }
 
         const item: Item = {
           frontmatter,
           path,
           component: rawModule.default,
-          slugs: path.replace(
-            /^\/server\/content\/recettes\/|\/index\.mdx$|\.mdx$/g,
-            "",
-          ),
+          slugs,
         };
 
         return item;
