@@ -19,13 +19,9 @@ export const NodeTree = ({
     >
       {nodes
         .sort((n1, n2) => {
-          // Always show nodes with no children first.
-          const n1HasChildren = "children" in n1 && n1.children.length > 0;
-          const n2HasChildren = "children" in n2 && n2.children.length > 0;
-
-          if (!n1HasChildren && n2HasChildren) return -1;
-          if (n1HasChildren && !n2HasChildren) return 1;
-          return 0;
+          const n1ChildrenLength = "children" in n1 ? n1.children.length : 0;
+          const n2ChildrenLength = "children" in n2 ? n2.children.length : 0;
+          return n1ChildrenLength - n2ChildrenLength;
         })
         .map((node) => {
           return (
