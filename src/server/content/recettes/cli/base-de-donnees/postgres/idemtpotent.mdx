@@ -1,0 +1,47 @@
+---
+sort: 100
+title: Idempotent
+---
+
+Voici la liste des commandes qui sont idempotentes, utiles pour écrire des migrations.
+
+|     | CREATE OR REPLACE | CREATE IF NOT EXISTS | DROP IF EXISTS |
+| --- | --- | --- | --- |
+| AGGREGATE | Y (12) | N   | Y   |
+| CAST | N   | N   | Y   |
+| COLLATION | N   | Y   | Y   |
+| CONVERSION | N   | N   | Y   |
+| DATABASE | N   | N   | Y   |
+| DOMAIN | N   | N   | Y   |
+| EVENT TRIGGER | N   | N   | Y   |
+| EXTENSION | N   | Y   | Y   |
+| FOREIGN DATA WRAPPER | N   | N   | Y   |
+| FOREIGN TABLE | N   | Y   | Y   |
+| FUNCTION | Y (7.2) | N   | Y   |
+| GROUP | N   | N   | Y   |
+| INDEX | N   | Y (9.5) | Y   |
+| LANGUAGE | Y   | N   | Y   |
+| MATERIALIZED VIEW | N   | Y (9.5) | Y   |
+| OPERATOR | N   | N   | Y   |
+| OPERATOR CLASS | N   | N   | Y   |
+| OPERATOR FAMILY | N   | N   | Y   |
+| PROCEDURE | Y (11) | N   | Y (11) |
+| ROLE | N   | N   | Y   |
+| RULE | Y   | N   | Y   |
+| SCHEMA | N   | Y   | Y   |
+| SEQUENCE | N   | Y (9.5) | Y   |
+| SERVER | N   | Y (10) | Y   |
+| STATISTICS | N   | Y (10) | Y   |
+| TABLE | N   | Y   | Y   |
+| TABLE AS | N   | Y   | N/A |
+| TABLESPACE | N   | N   | Y   |
+| TEXT SEARCH CONFIGURATION | N   | N   | Y   |
+| TEXT SEARCH DICTIONARY | N   | N   | Y   |
+| TEXT SEARCH PARSER | N   | N   | Y   |
+| TEXT SEARCH TEMPLATE | N   | N   | Y   |
+| TRANSFORM | Y (9.6) | N   | Y (9.6) |
+| TRIGGER | Y (14) | N   | Y   |
+| TYPE | N   | N   | Y   |
+| USER | N   | N   | Y   |
+| USER MAPPING | N   | Y (10) | Y   |
+| VIEW | Y   | N   | Y   |
