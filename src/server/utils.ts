@@ -1,6 +1,7 @@
 import { ActionPill } from "./components/ActionPill";
 import { Frame } from "./components/Frame";
 import { Link } from "./components/Link";
+import type { JSX } from "hono/jsx/jsx-runtime";
 
 export const sendHtml = (
   body?: BodyInit | JSX.Element | null,

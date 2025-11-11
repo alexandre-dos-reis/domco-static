@@ -6,6 +6,7 @@ import { getArticles, getCategories } from "./procedures";
 import NotFoundPage from "./pages/_404";
 import type { Page } from "./types";
 import { getRecettes } from "./recettes";
+import type { JSX } from "hono/jsx/jsx-runtime";
 
 export default {
   fetch: (req: Request) => {

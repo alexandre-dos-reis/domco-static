@@ -2,7 +2,7 @@ import { visitParents } from "unist-util-visit-parents";
 
 // https://github.com/jake-low/remark-sectionize/issues/5
 
-function update(section) {
+function update(section: any) {
   if (
     section.children &&
     section.children[0] &&
@@ -16,7 +16,7 @@ function update(section) {
 }
 
 export default function plugin() {
-  return (tree) => visitParents(tree, "element", update);
+  return (tree: any) => visitParents(tree, "element", update);
 }
 
 const HEADINGS = ["h1", "h2", "h3", "h4", "h5", "h6"];
