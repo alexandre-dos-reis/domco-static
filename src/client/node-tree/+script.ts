@@ -80,4 +80,4 @@ const drawLigns = () => {
 };
 
 document.addEventListener("DOMContentLoaded", drawLigns);
-window.addEventListener("resize", drawLigns);
+window.addEventListener("resize", drawLigns, true);
