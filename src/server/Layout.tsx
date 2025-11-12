@@ -1,4 +1,4 @@
-import { tags } from "client:script/main";
+import { src, tags } from "client:script/main";
 import { Header } from "./components/Header";
 import { raw } from "hono/html";
 import { getPageContext } from "./context";
@@ -11,6 +11,16 @@ export const Layout = ({
 }: PropsWithChildren<{
   pathname: string;
 }>) => {
+  /* This hack is usefull in production because currently the main script in empty,
+   * so we don't import it.
+   * In Dev, styles are imported via the vite script.
+   * */
+  const mainTags = import.meta.env.DEV
+    ? tags
+    : src.style.length === 0
+      ? ""
+      : src.style.map((s) => `<link rel=stylesheet href="${s}">`).join("");
+
   const { title, disableSEO, headTags } = getPageContext();
   return (
     <html lang="fr">
@@ -28,8 +38,8 @@ export const Layout = ({
         />
         {disableSEO && <meta name="robots" content="noindex, nofollow" />}
         <title>Alexandre Dos Reis{title && ` | ${title}`}</title>
-        {raw(tags)}
-        {headTags && headTags.map((tag) => raw(tag))}
+        {raw(mainTags)}
+        {headTags && raw(headTags.join(""))}
       </head>
       <body class="flex flex-col justify-between">
         <Header pathname={pathname} />
