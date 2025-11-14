@@ -28,7 +28,7 @@ const serveAssets = sirv("dist/client", {
         res.setHeader("Location", slugs); // Browser will redirect to new url
         res.setHeader("Content-Type", htmlContentType);
         return res.end(data);
-      } catch (_) {
+      } catch (_err) {
         /* Fallthrough 404*/
       }
     }
@@ -42,7 +42,7 @@ const serveAssets = sirv("dist/client", {
 
         res.setHeader("Content-Type", htmlContentType);
         res.end(data);
-      } catch (err) {
+      } catch (_err) {
         res.setHeader("Content-Type", plainTextContentType);
         res.end("404 - Not Found");
       }

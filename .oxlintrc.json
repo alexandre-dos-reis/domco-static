@@ -1,9 +1,5 @@
 {
-  "plugins": [
-    "unicorn",
-    "typescript",
-    "oxc"
-  ],
+  "plugins": ["unicorn", "typescript", "oxc"],
   "categories": {},
   "rules": {
     "for-direction": "warn",
@@ -48,7 +44,14 @@
     "no-unsafe-optional-chaining": "warn",
     "no-unused-labels": "warn",
     "no-unused-private-class-members": "warn",
-    "no-unused-vars": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
     "no-useless-backreference": "warn",
     "no-useless-catch": "warn",
     "no-useless-escape": "warn",
@@ -140,3 +143,4 @@
   "globals": {},
   "ignorePatterns": []
 }
+
