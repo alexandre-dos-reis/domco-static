@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": [
-      "ESNext",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "module": "esnext",
     "moduleResolution": "Bundler",
@@ -25,16 +21,9 @@
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@": [
-        "./src"
-      ],
-      "@/*": [
-        "./src/*"
-      ]
+      "@": ["./src"],
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "vite.config.ts",
-    "src"
-  ]
+  "include": ["vite.config.ts", "src"]
 }
